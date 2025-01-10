@@ -1,7 +1,7 @@
 view: 1st_error_count {
   derived_table: {
     sql: select
-        date(created_on),
+        date(created_on) as Created_on,
         SUBSTRING(
           umn
           FROM
@@ -20,7 +20,7 @@ view: 1st_error_count {
               ''
             )
           )
-        )
+        ) as count
       from
         hive.switch.txn_info_snapshot_v3
       where
