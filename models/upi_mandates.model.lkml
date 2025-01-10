@@ -5,3 +5,4 @@ explore: active_mandates {}
 explore: users_who_never_activated_again {}
 explore: users_who_revoked_mandate {}
 explore: creations_count {}
+explore: exec_revokes_pdn_count {}
