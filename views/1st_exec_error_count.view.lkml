@@ -1,12 +1,12 @@
 view: 1st_exec_error_count {
   derived_table: {
     sql: select
-        date(ti.created_on),
+        date(ti.created_on) as created_on,
         SUBSTRING(
           ti.umn
           FROM
             POSITION('@' IN ti.umn) + 1
-        ) AS hand,
+        ) AS handle,
         npci_resp_code,
        count(
           distinct concat(
