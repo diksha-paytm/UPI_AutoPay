@@ -10,3 +10,4 @@ explore: creations_error_count {}
 explore: 1st_error_count {}
 explore: repeating_exec_error_count {}
 explore: revokes_error_count {}
+explore: payer_revokes_error {}
