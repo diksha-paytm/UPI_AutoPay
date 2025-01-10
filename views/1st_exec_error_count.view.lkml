@@ -6,7 +6,7 @@ view: 1st_exec_error_count {
           ti.umn
           FROM
             POSITION('@' IN ti.umn) + 1
-        ) AS handle,
+        ) AS hand,
         npci_resp_code,
        count(
           distinct concat(
