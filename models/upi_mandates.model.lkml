@@ -7,6 +7,4 @@ explore: users_who_revoked_mandate {}
 explore: creations_count {}
 explore: exec_revokes_pdn_count {}
 explore: creations_error_count {}
-explore: 1st_error_count {}
-explore: repeating_exec_error_count {}
 explore: revokes_error_count {}
