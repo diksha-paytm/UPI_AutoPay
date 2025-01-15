@@ -11,3 +11,4 @@ explore: 1st_exec_error_count {}
 explore: cc_mandates {}
 explore: 1_exec_error_count {}
 explore: active_mandates {}
+explore: ipo_count {}
