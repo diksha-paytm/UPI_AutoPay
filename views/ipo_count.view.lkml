@@ -73,7 +73,7 @@ WHERE
 GROUP BY
   1, 2
 ORDER BY
-  1 desc, 2;
+  1 desc, 2
 
       ;;
   }
