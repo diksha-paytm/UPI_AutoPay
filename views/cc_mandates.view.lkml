@@ -16,6 +16,11 @@ view: cc_mandates {
           ''
         ) AS initiation_mode,
         ti.txn_id,
+        ti.npci_resp_code,
+        tp.name AS payer_name,
+        tp1.name AS payee_name,
+        tp.vpa AS payer_vpa,
+        tp1.vpa AS payee_vpa,
         replace(
               json_query(
                 ti.extended_info,
@@ -24,12 +29,8 @@ view: cc_mandates {
               '"',
               ''
             ) as exec_no,
-        ti.npci_resp_code,
-        tp.name AS payer_name,
-        tp1.name AS payee_name,
-        tp.vpa AS payer_vpa,
-        tp1.vpa AS payee_vpa,
-        COUNT(DISTINCT ti.umn) AS umn_count
+        ti.first_phase,
+        ti.umn as umn
       FROM
         hive.switch.txn_info_snapshot_v3 ti
         JOIN hive.switch.txn_participants_snapshot_v3 tp
@@ -46,10 +47,8 @@ view: cc_mandates {
         AND tp.participant_type = 'PAYER'
         AND tp1.participant_type = 'PAYEE'
         AND ti.created_on >= CAST('2024-12-31 00:00:00.000' AS TIMESTAMP)
-      GROUP BY
-        1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13
-      ORDER BY
-        1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13
+        ORDER BY
+        1 desc
        ;;
   }
 
