@@ -1,4 +1,4 @@
-view: cc_mandates {
+view: cc_datadump {
   derived_table: {
     sql: SELECT
         DATE(ti.created_on) AS created_date,
@@ -49,7 +49,7 @@ view: cc_mandates {
         AND ti.created_on >= CAST('2024-12-31 00:00:00.000' AS TIMESTAMP)
         ORDER BY
         1 desc
-       ;;
+ ;;
   }
 
   suggestions: no
@@ -94,11 +94,6 @@ view: cc_mandates {
     sql: ${TABLE}.txn_id ;;
   }
 
-  dimension: exec_no {
-    type: string
-    sql: ${TABLE}.exec_no ;;
-  }
-
   dimension: npci_resp_code {
     type: string
     sql: ${TABLE}.npci_resp_code ;;
@@ -124,9 +119,19 @@ view: cc_mandates {
     sql: ${TABLE}.payee_vpa ;;
   }
 
-  dimension: umn_count {
-    type: number
-    sql: ${TABLE}.umn_count ;;
+  dimension: exec_no {
+    type: string
+    sql: ${TABLE}.exec_no ;;
+  }
+
+  dimension: first_phase {
+    type: string
+    sql: ${TABLE}.first_phase ;;
+  }
+
+  dimension: umn {
+    type: string
+    sql: ${TABLE}.umn ;;
   }
 
   set: detail {
@@ -138,13 +143,14 @@ view: cc_mandates {
       handle,
       initiation_mode,
       txn_id,
-      exec_no,
       npci_resp_code,
       payer_name,
       payee_name,
       payer_vpa,
       payee_vpa,
-      umn_count
+      exec_no,
+      first_phase,
+      umn
     ]
   }
 }

@@ -8,7 +8,7 @@ explore: exec_revokes_pdn_count {}
 explore: creations_error_count {}
 explore: revokes_error_count {}
 explore: 1st_exec_error_count {}
-explore: cc_mandates {}
+explore: cc_datadump {}
 explore: 1_exec_error_count {}
 explore: active_mandates {}
 explore: ipo_count {}
