@@ -12,3 +12,4 @@ explore: cc_datadump {}
 explore: 1_exec_error_count {}
 explore: active_mandates {}
 explore: ipo_count {}
+explore: cc_summary {}
