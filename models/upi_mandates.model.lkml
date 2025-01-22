@@ -14,3 +14,4 @@ explore: active_mandates {}
 explore: ipo_count {}
 explore: cc_summary {}
 explore: cc_create_error {}
+explore: cc_1st_exec_error {}
