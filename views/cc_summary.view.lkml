@@ -31,6 +31,7 @@ view: cc_summary {
           AND tp.participant_type = 'PAYER'
           AND tp1.participant_type = 'PAYEE'
           AND ti.created_on >= CAST('2024-12-31 00:00:00.000' AS TIMESTAMP)
+          AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
       ),
       aggregated_data AS (
         SELECT
