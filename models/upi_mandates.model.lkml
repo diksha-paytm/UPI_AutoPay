@@ -14,3 +14,4 @@ explore: overall_sr {}
 explore: creations_sr {}
 explore: 1st_exec_sr {}
 explore: recurring_exec_sr {}
+explore: revoke_sr {}
