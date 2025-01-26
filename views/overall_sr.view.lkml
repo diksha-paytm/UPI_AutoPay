@@ -25,6 +25,11 @@ view: overall_sr {
               AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'CREATE'
+              AND SUBSTRING(
+    ti.umn
+    FROM
+      POSITION('@' IN ti.umn) + 1
+  )!='paytm'
               AND status IN ('FAILURE', 'SUCCESS')
           GROUP BY
               1
