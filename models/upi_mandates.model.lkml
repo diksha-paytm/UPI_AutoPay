@@ -16,3 +16,4 @@ explore: cc_create_error {}
 explore: cc_1st_exec_error {}
 explore: cc_revoke_error {}
 explore: overall_count {}
+explore: overall_sr {}
