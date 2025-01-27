@@ -24,3 +24,4 @@ explore: payer_revoke_count {}
 explore: payee_revoke_count {}
 explore: pdn_count {}
 explore: creations_count_across_mode {}
+explore: mom_overall_sr {}
