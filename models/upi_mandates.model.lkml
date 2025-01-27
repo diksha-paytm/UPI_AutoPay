@@ -22,3 +22,4 @@ explore: 1st_exec_count {}
 explore: recurring_exec_count {}
 explore: payer_revoke_count {}
 explore: payee_revoke_count {}
+explore: pdn_count {}
