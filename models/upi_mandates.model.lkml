@@ -23,3 +23,4 @@ explore: recurring_exec_count {}
 explore: payer_revoke_count {}
 explore: payee_revoke_count {}
 explore: pdn_count {}
+explore: creations_count_across_mode {}
