@@ -31,3 +31,4 @@ explore: overall_1st_exec_error_count {}
 explore: 1st_exec_error_count_handle_wise {}
 explore: overall_recurring_exec_error_count {}
 explore: recurring_exec_error_count_handle_wise {}
+explore: overall_revoke_error_count {}
