@@ -15,7 +15,7 @@ view: overall_creations_error_count {
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'CREATE'
               AND ti.status = 'FAILURE'
-              AND SUBSTRING(ti.umn, POSITION('@' IN ti.umn) + 1) NOT IN ('PAYTM', 'PayTM', 'PayTm', 'Paytm')
+              AND SUBSTRING(ti.umn, POSITION('@' IN ti.umn) + 1) NOT IN ('PAYTM', 'PayTM', 'PayTm', 'Paytm','paytm')
               AND ti.npci_resp_code IN ('UM3', 'ZA', 'UM8-ZM', 'UM8', 'UM1', 'UM9', 'MD00', 'U66', 'UM8-Z6', 'UM2')
           GROUP BY
               DATE(ti.created_on),
