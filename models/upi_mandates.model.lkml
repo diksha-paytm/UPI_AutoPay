@@ -18,3 +18,4 @@ explore: revoke_sr {}
 explore: payer_revoke_sr {}
 explore: creations_sr_across_mode {}
 explore: creations_count {}
+explore: 1st_exec_count {}
