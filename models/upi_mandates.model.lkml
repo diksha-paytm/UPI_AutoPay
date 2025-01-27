@@ -17,3 +17,4 @@ explore: recurring_exec_sr {}
 explore: revoke_sr {}
 explore: payer_revoke_sr {}
 explore: creations_sr_across_mode {}
+explore: creations_count {}
