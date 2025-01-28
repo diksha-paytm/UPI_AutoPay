@@ -1,0 +1,76 @@
+view: cc_top_merchants {
+  derived_table: {
+    sql: WITH payee_data AS (
+          SELECT
+              tp1.name AS payee_name,
+              tp1.vpa AS payee_vpa,
+              COUNT(*) AS total_success_count
+          FROM
+              hive.switch.txn_info_snapshot_v3 ti
+              JOIN hive.switch.txn_participants_snapshot_v3 tp
+                  ON ti.txn_id = tp.txn_id
+              JOIN hive.switch.txn_participants_snapshot_v3 tp1
+                  ON ti.txn_id = tp1.txn_id
+          WHERE
+              ti.business_type = 'MANDATE'
+              AND tp.account_type = 'CREDIT'
+              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
+              AND ti.dl_last_updated > DATE('2024-12-01')
+              AND tp.dl_last_updated > DATE('2024-12-01')
+              AND tp1.dl_last_updated > DATE('2024-12-01')
+              AND tp.participant_type = 'PAYER'
+              AND tp1.participant_type = 'PAYEE'
+              AND ti.created_on >= CAST('2025-01-02 00:00:00.000' AS TIMESTAMP)
+              AND ti.status = 'SUCCESS' -- Only count successful transactions
+          GROUP BY
+              tp1.name,
+              tp1.vpa
+      ),
+      top_30_vpas AS (
+          SELECT
+              payee_name,
+              payee_vpa,
+              total_success_count
+          FROM
+              payee_data
+          ORDER BY
+              total_success_count DESC
+          LIMIT 30 -- Select only the top 30 VPAs
+      )
+      SELECT
+          payee_name,
+          payee_vpa,
+          total_success_count
+      FROM
+          top_30_vpas
+      ORDER BY
+          total_success_count DESC
+       ;;
+  }
+
+  suggestions: no
+
+  measure: count {
+    type: count
+    drill_fields: [detail*]
+  }
+
+  dimension: payee_name {
+    type: string
+    sql: ${TABLE}.payee_name ;;
+  }
+
+  dimension: payee_vpa {
+    type: string
+    sql: ${TABLE}.payee_vpa ;;
+  }
+
+  dimension: total_success_count {
+    type: number
+    sql: ${TABLE}.total_success_count ;;
+  }
+
+  set: detail {
+    fields: [payee_name, payee_vpa, total_success_count]
+  }
+}
