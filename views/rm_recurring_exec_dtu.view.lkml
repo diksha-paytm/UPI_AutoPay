@@ -1,4 +1,4 @@
-view: rm_1st_exec_dtu {
+view: rm_recurring_exec_dtu {
   derived_table: {
     sql: SELECT
         DATE(ti.created_on) AS Date,
@@ -21,7 +21,7 @@ view: rm_1st_exec_dtu {
             '"',
             ''
           ) as integer
-        ) = 1
+        ) > 1
         AND ti.dl_last_updated IS NOT NULL
         AND tp.dl_last_updated IS NOT NULL
         AND ti.created_on >= CAST(DATE_ADD('day', -100,CURRENT_DATE) AS TIMESTAMP)
