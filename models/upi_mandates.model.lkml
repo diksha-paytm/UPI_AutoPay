@@ -40,3 +40,5 @@ explore: mandate_dtu {}
 explore: recurring_mandates_dtu {}
 explore: rm_creations_dtu {}
 explore: rm_1st_exec_dtu {}
+explore: rm_recurring_exec_dtu {}
+explore: rm_revoke_dtu {}
