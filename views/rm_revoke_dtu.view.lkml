@@ -12,8 +12,8 @@ view: rm_revoke_dtu {
         ti.business_type = 'MANDATE'
         and json_query(ti.extended_info, 'strict$.purpose') = '"14"'
         and ti.type = 'REVOKE'
-        AND ti.dl_last_updated IS NOT NULL
-        AND tp.dl_last_updated IS NOT NULL
+        AND ti.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
+        AND tp.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
         AND ti.created_on >= CAST(DATE_ADD('day', -100,CURRENT_DATE) AS TIMESTAMP)
         AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
       GROUP BY

@@ -25,12 +25,12 @@ view: cc_summary {
           ti.business_type = 'MANDATE'
           AND tp.account_type = 'CREDIT'
           AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-          AND ti.dl_last_updated > DATE('2024-12-01')
-          AND tp.dl_last_updated > DATE('2024-12-01')
-          AND tp1.dl_last_updated > DATE('2024-12-01')
+          AND ti.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
+          AND tp.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
+          AND tp1.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
           AND tp.participant_type = 'PAYER'
           AND tp1.participant_type = 'PAYEE'
-          AND ti.created_on >= CAST('2024-12-31 00:00:00.000' AS TIMESTAMP)
+          AND ti.created_on >= CAST(>= DATE_ADD('day', -100,CURRENT_DATE) AS TIMESTAMP)
           AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
       ),
       aggregated_data AS (

@@ -23,7 +23,7 @@ view: pdn_count {
           FROM
               hive.switch.financial_notification_snapshot_v3 fn
           WHERE
-               fn.dl_last_updated IS NOT NULL
+               fn.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
               AND fn.created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND fn.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND fn.status IN ('FAILURE', 'SUCCESS')

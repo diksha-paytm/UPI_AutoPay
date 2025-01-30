@@ -24,9 +24,9 @@ view: cc_1st_exec_error {
           ) as integer
         )=1
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated > DATE('2024-12-01')
-              AND tp.dl_last_updated > DATE('2024-12-01')
-              AND ti.created_on >= CAST('2024-12-31 00:00:00.000' AS TIMESTAMP)
+              AND ti.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
+              AND tp.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
+              AND ti.created_on >= CAST(DATE_ADD('day', -100,CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
       ),
       total_counts AS (

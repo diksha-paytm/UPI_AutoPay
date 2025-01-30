@@ -15,12 +15,12 @@ view: cc_top_merchants {
               ti.business_type = 'MANDATE'
               AND tp.account_type = 'CREDIT'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated > DATE('2024-12-01')
-              AND tp.dl_last_updated > DATE('2024-12-01')
-              AND tp1.dl_last_updated > DATE('2024-12-01')
+              AND ti.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
+              AND tp.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
+              AND tp1.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
               AND tp.participant_type = 'PAYER'
               AND tp1.participant_type = 'PAYEE'
-              AND ti.created_on >= CAST('2025-01-02 00:00:00.000' AS TIMESTAMP)
+              AND ti.created_on >= CAST(>= DATE_ADD('day', -100,CURRENT_DATE) AS TIMESTAMP)
               AND ti.status = 'SUCCESS' -- Only count successful transactions
           GROUP BY
               tp1.name,

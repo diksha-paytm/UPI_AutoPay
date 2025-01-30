@@ -21,7 +21,7 @@ view: overall_count {
           WHERE
               business_type = 'MANDATE'
               AND JSON_QUERY(extended_info, 'strict$.purpose') = '"14"'
-              AND dl_last_updated IS NOT NULL
+              AND dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
               AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'CREATE'
@@ -69,7 +69,7 @@ view: overall_count {
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND dl_last_updated IS NOT NULL
+              AND dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
               AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
@@ -114,7 +114,7 @@ view: overall_count {
               business_type = 'MANDATE'
               AND JSON_QUERY(extended_info, 'strict$.purpose') = '"14"'
               AND CAST(REPLACE(JSON_QUERY(extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
-              AND dl_last_updated IS NOT NULL
+              AND dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
               AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'COLLECT'
@@ -144,7 +144,7 @@ view: overall_count {
               business_type = 'MANDATE'
               AND JSON_QUERY(extended_info, 'strict$.purpose') = '"14"'
               AND first_phase != 'REQMANDATECONFIRMATION-REVOKE'
-              AND dl_last_updated IS NOT NULL
+              AND dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
               AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'REVOKE'
@@ -163,7 +163,7 @@ view: overall_count {
               business_type = 'MANDATE'
               AND first_phase = 'REQMANDATECONFIRMATION-REVOKE'
               AND JSON_QUERY(extended_info, 'strict$.purpose') = '"14"'
-              AND dl_last_updated IS NOT NULL
+              AND dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
               AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'REVOKE'
@@ -179,7 +179,7 @@ view: overall_count {
           FROM
               hive.switch.financial_notification_snapshot_v3 fn
           WHERE
-              dl_last_updated IS NOT NULL
+              dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
               AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND status = 'SUCCESS'
