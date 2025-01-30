@@ -9,8 +9,8 @@ view: active_mandates {
           FROM hive.switch.standing_instructions_snapshot_v3 si
           JOIN hive.switch.standing_instructions_participants_snapshot_v3 sip
             ON si.umn = sip.umn
-          WHERE si.dl_last_updated IS NOT NULL
-            AND sip.dl_last_updated IS NOT NULL
+          WHERE si.dl_last_updated > DATE('2024-03-01')
+            AND sip.dl_last_updated > DATE('2024-03-01')
             AND si.mandate_status = 'ACTIVE'
         ) a
         LEFT JOIN (
@@ -29,9 +29,9 @@ view: active_mandates {
             FROM hive.switch.standing_instructions_snapshot_v3 si
             JOIN hive.switch.standing_instructions_participants_snapshot_v3 sip
               ON si.umn = sip.umn
-            WHERE si.dl_last_updated IS NOT NULL
+            WHERE si.dl_last_updated > DATE('2024-03-01')
               AND si.type = 'REVOKE'
-              AND sip.dl_last_updated IS NOT NULL
+              AND sip.dl_last_updated > DATE('2024-03-01')
             GROUP BY json_query(sip.extended_info, 'strict $.payerCustId')
           ) rev
           LEFT JOIN (
@@ -41,9 +41,9 @@ view: active_mandates {
             FROM hive.switch.standing_instructions_snapshot_v3 si
             JOIN hive.switch.standing_instructions_participants_snapshot_v3 sip
               ON si.umn = sip.umn
-            WHERE si.dl_last_updated IS NOT NULL
+            WHERE si.dl_last_updated > DATE('2024-03-01')
               AND si.type = 'CREATE'
-              AND sip.dl_last_updated IS NOT NULL
+              AND sip.dl_last_updated > DATE('2024-03-01')
             GROUP BY json_query(sip.extended_info, 'strict $.payerCustId')
           ) act
           ON rev.payer_cust_id = act.payer_cust_id AND act.max_created > rev.min_revoked
