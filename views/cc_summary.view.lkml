@@ -30,7 +30,7 @@ view: cc_summary {
           AND tp1.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
           AND tp.participant_type = 'PAYER'
           AND tp1.participant_type = 'PAYEE'
-          AND ti.created_on >= CAST(>= DATE_ADD('day', -100,CURRENT_DATE) AS TIMESTAMP)
+          AND ti.created_on >= CAST(DATE_ADD('day', -100,CURRENT_DATE) AS TIMESTAMP)
           AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
       ),
       aggregated_data AS (
