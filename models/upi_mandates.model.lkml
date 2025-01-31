@@ -39,3 +39,4 @@ explore: rm_1st_exec_dtu {}
 explore: rm_recurring_exec_dtu {}
 explore: rm_revoke_dtu {}
 explore: upi_mandate_dtu_success {}
+explore: cc_top_merchants {}
