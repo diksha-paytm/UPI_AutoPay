@@ -57,7 +57,7 @@ SELECT
 FROM
     top_30_vpas
 ORDER BY
-    total_success_count DESC;
+    total_success_count DESC
 
        ;;
   }
