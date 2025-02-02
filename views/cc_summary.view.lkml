@@ -60,6 +60,17 @@ view: cc_summary {
             )
             ELSE 0
           END AS First_Exec_SR,
+          COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 AND status = 'SUCCESS' THEN 1 END) AS Recurring_Exec_success,
+          COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 AND status = 'FAILURE' THEN 1 END) AS Recurring_Exec_failure,
+          COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 AND status IN ('FAILURE','SUCCESS') THEN 1 END) AS Recurring_Exec_total,
+          CASE
+            WHEN COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 AND status IN ('FAILURE','SUCCESS')  THEN 1 END) > 0
+            THEN ROUND(
+              COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 AND status = 'SUCCESS' THEN 1 END) * 100.0 /
+              COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 AND status IN ('FAILURE','SUCCESS') THEN 1 END), 2
+            )
+            ELSE 0
+          END AS Recurring_Exec_SR,
           -- REVOKE
           COUNT(CASE WHEN type = 'REVOKE' AND status = 'SUCCESS' THEN 1 END) AS revoke_success,
           COUNT(CASE WHEN type = 'REVOKE' AND status = 'FAILURE' THEN 1 END) AS revoke_failure,
@@ -85,6 +96,10 @@ view: cc_summary {
         First_Exec_failure AS "1stEXEC-Failure",
         First_Exec_total AS "1stEXEC-Total",
         CONCAT(CAST(First_Exec_SR AS VARCHAR), '%') AS "1stEXEC-SR",
+        Recurring_Exec_success AS "RecurringEXEC-Success",
+        Recurring_Exec_failure AS "RecurringEXEC-Failure",
+        Recurring_Exec_total AS "RecurringEXEC-Total",
+        CONCAT(CAST(Recurring_Exec_SR AS VARCHAR), '%') AS "RecurringEXEC-SR",
         revoke_success AS "REVOKE-Success",
         revoke_failure AS "REVOKE-Failure",
         revoke_total AS "REVOKE-Total",
