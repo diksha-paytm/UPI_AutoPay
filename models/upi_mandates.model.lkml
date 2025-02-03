@@ -39,6 +39,5 @@ explore: rm_recurring_exec_dtu {}
 explore: rm_revoke_dtu {}
 explore: upi_mandate_dtu_success {}
 explore: cc_top_merchants {}
-explore: cc_recurring_exec_error {}
 explore: cc_active_mandates {}
 explore: cc_summary {}
