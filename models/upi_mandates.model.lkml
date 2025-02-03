@@ -3,7 +3,6 @@ connection: "starburst_connection"
 include: "/views/**/*.view"
 explore: cc_datadump {}
 explore: active_mandates {}
-explore: cc_summary {}
 explore: cc_create_error {}
 explore: cc_1st_exec_error {}
 explore: cc_revoke_error {}
@@ -41,4 +40,3 @@ explore: rm_revoke_dtu {}
 explore: upi_mandate_dtu_success {}
 explore: cc_top_merchants {}
 explore: cc_recurring_exec_error {}
-explore: cc_active_mandates {}
