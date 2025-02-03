@@ -1,7 +1,7 @@
 view: cc_active_mandates {
   derived_table: {
     sql: SELECT
-        count(distinct si.umn)
+        count(distinct si.umn) as active_mandates
         FROM
         hive.switch.standing_instructions_snapshot_v3 si
         join hive.switch.standing_instructions_participants_snapshot_v3 sip on si.umn = sip.umn
