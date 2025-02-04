@@ -44,3 +44,4 @@ explore: cc_recurring_exec_error {}
 explore: cc_revoke_error {}
 explore: cc_top_merchants {}
 explore: cc_datadump {}
+explore: active_mandates {}
