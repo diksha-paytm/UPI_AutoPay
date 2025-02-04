@@ -19,6 +19,8 @@ view: cc_datadump {
         ti.npci_resp_code,
         tp.name AS payer_name,
         tp1.name AS payee_name,
+        tp1.bank_code as bene_bank,
+  tp.bank_code as rem_bank,
         tp.vpa AS payer_vpa,
         tp1.vpa AS payee_vpa,
         replace(
@@ -109,6 +111,16 @@ view: cc_datadump {
     sql: ${TABLE}.payee_name ;;
   }
 
+  dimension: bene_bank {
+    type: string
+    sql: ${TABLE}.bene_bank ;;
+  }
+
+  dimension: rem_bank {
+    type: string
+    sql: ${TABLE}.rem_bank ;;
+  }
+
   dimension: payer_vpa {
     type: string
     sql: ${TABLE}.payer_vpa ;;
@@ -146,6 +158,8 @@ view: cc_datadump {
       npci_resp_code,
       payer_name,
       payee_name,
+      bene_bank,
+      rem_bank,
       payer_vpa,
       payee_vpa,
       exec_no,
