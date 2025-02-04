@@ -44,3 +44,4 @@ explore: cc_sr {}
 explore: cc_datadump {}
 explore: cc_create_error {}
 explore: cc_1st_exec_error {}
+explore: cc_recurring_exec_error {}
