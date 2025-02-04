@@ -9,7 +9,7 @@ explore: recurring_exec_sr {}
 explore: revoke_sr {}
 explore: payer_revoke_sr {}
 explore: creations_sr_across_mode {}
-explore: creations_count {}
+explore: creations_success_count {}
 explore: 1st_exec_count {}
 explore: recurring_exec_count {}
 explore: payer_revoke_count {}
