@@ -1,7 +1,6 @@
 # Define the database connection to be used for this model.
 connection: "starburst_connection"
 include: "/views/**/*.view"
-explore: active_mandates {}
 explore: overall_count {}
 explore: overall_sr {}
 explore: creations_sr {}
