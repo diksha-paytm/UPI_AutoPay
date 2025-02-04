@@ -42,3 +42,4 @@ explore: cc_top_merchants {}
 explore: cc_active_mandates {}
 explore: cc_summary {}
 explore: cc_success_count {}
+explore: cc_failure {}
