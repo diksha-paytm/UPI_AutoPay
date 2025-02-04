@@ -1,7 +1,6 @@
 # Define the database connection to be used for this model.
 connection: "starburst_connection"
 include: "/views/**/*.view"
-explore: cc_datadump {}
 explore: active_mandates {}
 explore: cc_create_error {}
 explore: cc_1st_exec_error {}
