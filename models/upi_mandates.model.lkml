@@ -43,3 +43,4 @@ explore: cc_summary {}
 explore: cc_failure {}
 explore: cc_success{}
 explore: cc_sr {}
+explore: cc_datadump {}
