@@ -2,7 +2,6 @@
 connection: "starburst_connection"
 include: "/views/**/*.view"
 explore: active_mandates {}
-explore: cc_revoke_error {}
 explore: overall_count {}
 explore: overall_sr {}
 explore: creations_sr {}
