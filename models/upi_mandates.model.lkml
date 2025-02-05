@@ -11,6 +11,7 @@ explore: creations_success_handles_and_mode_collect {}
 explore: creations_failure_mode_wise {}
 explore: creations_success_mode_wise {}
 explore: payer_revoke_sr {}
+explore: creations_count_handles_and_mode {}
 explore: creations_sr_across_mode {}
 explore: creations_success_handles_and_mode_intent {}
 explore: creations_failure_count {}
