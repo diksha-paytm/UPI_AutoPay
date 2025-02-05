@@ -13,6 +13,7 @@ explore: payer_revoke_sr {}
 explore: creations_sr_across_mode {}
 explore: creations_failure_count {}
 explore: creations_success_count {}
+explore: creations_success_handles_mode_collect {}
 explore: 1st_exec_count {}
 explore: recurring_exec_count {}
 explore: payer_revoke_count {}
