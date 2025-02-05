@@ -1,4 +1,4 @@
-view: creations_success_handles_mode_collect {
+view: creations_success_handles_and_mode_intent {
   derived_table: {
     sql: WITH handle_data AS (
           SELECT
@@ -16,22 +16,22 @@ view: creations_success_handles_mode_collect {
               AND ti.type = 'CREATE'
               AND ti.status = 'SUCCESS'
               AND LOWER(SUBSTRING(ti.umn, POSITION('@' IN ti.umn) + 1)) IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes')
-              AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') IN ('00')
+              AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') IN ('04')
           GROUP BY 1, 2, 3
       )
       SELECT
           created_date,
           -- PTAXIS
-          MAX(CASE WHEN handle = 'ptaxis' AND initiation_mode = '00' THEN success ELSE 0 END) AS "ptaxis Collect",
+          MAX(CASE WHEN handle = 'ptaxis' AND initiation_mode = '04' THEN success ELSE 0 END) AS "ptaxis Intent",
 
       -- PTHDFC
-      MAX(CASE WHEN handle = 'pthdfc' AND initiation_mode = '00' THEN success ELSE 0 END) AS "pthdfc Collect",
+      MAX(CASE WHEN handle = 'pthdfc' AND initiation_mode = '04' THEN success ELSE 0 END) AS "pthdfc Intent",
 
       -- PTSBI
-      MAX(CASE WHEN handle = 'ptsbi' AND initiation_mode = '00' THEN success ELSE 0 END) AS "ptsbi Collect",
+      MAX(CASE WHEN handle = 'ptsbi' AND initiation_mode = '04' THEN success ELSE 0 END) AS "ptsbi Intent",
 
       -- PTYES
-      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '00' THEN success ELSE 0 END) AS "ptyes Collect"
+      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '04' THEN success ELSE 0 END) AS "ptyes Intent"
       FROM handle_data
       GROUP BY created_date
       ORDER BY created_date DESC
@@ -50,31 +50,31 @@ view: creations_success_handles_mode_collect {
     sql: ${TABLE}.created_date ;;
   }
 
-  dimension: ptaxis_collect {
+  dimension: ptaxis_intent {
     type: number
-    label: "ptaxis Collect"
-    sql: ${TABLE}."ptaxis Collect" ;;
+    label: "ptaxis Intent"
+    sql: ${TABLE}."ptaxis Intent" ;;
   }
 
-  dimension: pthdfc_collect {
+  dimension: pthdfc_intent {
     type: number
-    label: "pthdfc Collect"
-    sql: ${TABLE}."pthdfc Collect" ;;
+    label: "pthdfc Intent"
+    sql: ${TABLE}."pthdfc Intent" ;;
   }
 
-  dimension: ptsbi_collect {
+  dimension: ptsbi_intent {
     type: number
-    label: "ptsbi Collect"
-    sql: ${TABLE}."ptsbi Collect" ;;
+    label: "ptsbi Intent"
+    sql: ${TABLE}."ptsbi Intent" ;;
   }
 
-  dimension: ptyes_collect {
+  dimension: ptyes_intent {
     type: number
-    label: "ptyes Collect"
-    sql: ${TABLE}."ptyes Collect" ;;
+    label: "ptyes Intent"
+    sql: ${TABLE}."ptyes Intent" ;;
   }
 
   set: detail {
-    fields: [created_date, ptaxis_collect, pthdfc_collect, ptsbi_collect, ptyes_collect]
+    fields: [created_date, ptaxis_intent, pthdfc_intent, ptsbi_intent, ptyes_intent]
   }
 }
