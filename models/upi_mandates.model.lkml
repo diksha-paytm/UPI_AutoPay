@@ -6,6 +6,7 @@ explore: creations_mode_count {}
 explore: overall_sr {}
 explore: creations_handle_count {}
 explore: creations_sr {}
+explore: creations_handles_and_mode_sr {}
 explore: 1st_exec_sr {}
 explore: recurring_exec_sr {}
 explore: revoke_sr {}
