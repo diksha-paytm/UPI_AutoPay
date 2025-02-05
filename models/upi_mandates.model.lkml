@@ -18,7 +18,6 @@ explore: recurring_exec_count {}
 explore: payer_revoke_count {}
 explore: payee_revoke_count {}
 explore: pdn_count {}
-explore: creations_count_across_mode {}
 explore: creations_error_count_handle_wise {}
 explore: overall_1st_exec_error_count {}
 explore: 1st_exec_error_count_handle_wise {}
