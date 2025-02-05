@@ -48,3 +48,4 @@ explore: cc_revoke_error {}
 explore: cc_top_merchants {}
 explore: cc_datadump {}
 explore: active_mandates {}
+explore: creations_os_and_mode_sr {}
