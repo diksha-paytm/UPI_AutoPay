@@ -3,6 +3,7 @@ connection: "starburst_connection"
 include: "/views/**/*.view"
 explore: overall_count {}
 explore: overall_sr {}
+explore: creations_overall_count {}
 explore: creations_sr {}
 explore: 1st_exec_sr {}
 explore: recurring_exec_sr {}
