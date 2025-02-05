@@ -7,6 +7,7 @@ explore: creations_sr {}
 explore: 1st_exec_sr {}
 explore: recurring_exec_sr {}
 explore: revoke_sr {}
+explore: creations_success_mode_wise {}
 explore: payer_revoke_sr {}
 explore: creations_sr_across_mode {}
 explore: creations_failure_count {}
