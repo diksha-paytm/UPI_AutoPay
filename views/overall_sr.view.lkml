@@ -21,8 +21,8 @@ view: overall_sr {
           WHERE
               business_type = 'MANDATE'
               AND JSON_QUERY(extended_info, 'strict$.purpose') = '"14"'
-              AND dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
-              AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
+              AND dl_last_updated >= DATE_ADD('day', -50,CURRENT_DATE)
+              AND created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'CREATE'
               AND SUBSTRING(
