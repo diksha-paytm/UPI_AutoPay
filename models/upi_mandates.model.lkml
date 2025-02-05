@@ -2,6 +2,7 @@
 connection: "starburst_connection"
 include: "/views/**/*.view"
 explore: overall_count {}
+explore: creations_mode_count {}
 explore: overall_sr {}
 explore: creations_handle_count {}
 explore: creations_sr {}
