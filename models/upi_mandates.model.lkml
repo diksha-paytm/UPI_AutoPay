@@ -5,6 +5,7 @@ explore: overall_count {}
 explore: creations_mode_count {}
 explore: overall_sr {}
 explore: creations_handle_count {}
+explore: 1st_exec_failure_count {}
 explore: creations_sr {}
 explore: creations_handles_and_mode_sr {}
 explore: 1st_exec_sr {}
