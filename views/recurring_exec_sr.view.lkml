@@ -10,8 +10,7 @@ view: recurring_exec_sr {
                           ti.umn,
                           REPLACE(
                               JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                              '"',
-                              ''
+                              '"', ''
                           )
                       )
                       ELSE NULL
@@ -23,55 +22,46 @@ view: recurring_exec_sr {
                           ti.umn,
                           REPLACE(
                               JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                              '"',
-                              ''
+                              '"', ''
                           )
                       )
                       ELSE NULL
                   END
               ) AS failure
-          FROM
-              hive.switch.txn_info_snapshot_v3 ti
+          FROM hive.switch.txn_info_snapshot_v3 ti
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
+              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
+              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
               AND ti.status IN ('FAILURE', 'SUCCESS')
-          GROUP BY
-              DATE(ti.created_on),
-              SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1)
+          GROUP BY 1, 2
       ),
       pivoted_data AS (
           SELECT
               created_date,
               handle,
-              CONCAT(
-                  CAST(ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS VARCHAR),
-                  '%'
-              ) AS sr
-          FROM
-              handle_data
-          WHERE
-              handle IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes', 'paytm')
+              ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS sr -- Numeric type for aggregation
+          FROM handle_data
+          WHERE handle IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes','paytm')
       )
       SELECT
           created_date,
-          MAX(CASE WHEN handle = 'paytm' THEN sr ELSE NULL END) AS "paytm SR",
-          MAX(CASE WHEN handle = 'ptaxis' THEN sr ELSE NULL END) AS "ptaxis SR",
-          MAX(CASE WHEN handle = 'pthdfc' THEN sr ELSE NULL END) AS "pthdfc SR",
-          MAX(CASE WHEN handle = 'ptsbi' THEN sr ELSE NULL END) AS "ptsbi SR",
-          MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS "ptyes SR"
-      FROM
-          pivoted_data
-      GROUP BY
-          created_date
-      ORDER BY
-          created_date DESC
-       ;;
+          -- Convert to VARCHAR with '%' in final select
+          CONCAT(CAST(MAX(CASE WHEN handle = 'paytm' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "paytm SR",
+          CONCAT(CAST(MAX(CASE WHEN handle = 'ptaxis' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptaxis SR",
+          CONCAT(CAST(MAX(CASE WHEN handle = 'pthdfc' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "pthdfc SR",
+          CONCAT(CAST(MAX(CASE WHEN handle = 'ptsbi' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptsbi SR",
+          CONCAT(CAST(MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptyes SR",
+          -- Calculate Average SR and then format as percentage
+          CONCAT(CAST(ROUND(AVG(sr), 2) AS VARCHAR), '%') AS "Average SR"
+      FROM pivoted_data
+      GROUP BY created_date
+      ORDER BY created_date DESC
+ ;;
   }
 
   suggestions: no
@@ -116,6 +106,12 @@ view: recurring_exec_sr {
     sql: ${TABLE}."ptyes SR" ;;
   }
 
+  dimension: average_sr {
+    type: string
+    label: "Average SR"
+    sql: ${TABLE}."Average SR" ;;
+  }
+
   set: detail {
     fields: [
       created_date,
@@ -123,7 +119,8 @@ view: recurring_exec_sr {
       ptaxis_sr,
       pthdfc_sr,
       ptsbi_sr,
-      ptyes_sr
+      ptyes_sr,
+      average_sr
     ]
   }
 }
