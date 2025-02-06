@@ -35,8 +35,8 @@ view: 1st_exec_sr {
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
+              AND ti.dl_last_updated >= DATE_ADD('day', -50,CURRENT_DATE)
+              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
@@ -64,6 +64,8 @@ view: 1st_exec_sr {
           MAX(CASE WHEN handle = 'pthdfc' THEN sr ELSE NULL END) AS "pthdfc SR",
           MAX(CASE WHEN handle = 'ptsbi' THEN sr ELSE NULL END) AS "ptsbi SR",
           MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS "ptyes SR"
+      -- Calculate Average SR, ignoring NULL values
+    CAST(ROUND(AVG(sr), 2) AS VARCHAR) || '%' AS "Average SR"
       FROM
           pivoted_data
       GROUP BY
