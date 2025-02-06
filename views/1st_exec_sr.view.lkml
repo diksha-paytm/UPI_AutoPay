@@ -63,7 +63,7 @@ view: 1st_exec_sr {
           MAX(CASE WHEN handle = 'ptaxis' THEN sr ELSE NULL END) AS "ptaxis SR",
           MAX(CASE WHEN handle = 'pthdfc' THEN sr ELSE NULL END) AS "pthdfc SR",
           MAX(CASE WHEN handle = 'ptsbi' THEN sr ELSE NULL END) AS "ptsbi SR",
-          MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS "ptyes SR"
+          MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS "ptyes SR",
       -- Calculate Average SR, ignoring NULL values
     CAST(ROUND(AVG(sr), 2) AS VARCHAR) || '%' AS "Average SR"
       FROM
