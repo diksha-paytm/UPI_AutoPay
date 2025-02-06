@@ -9,6 +9,7 @@ explore: 1st_exec_failure_count {}
 explore: creations_sr {}
 explore: 1st_exec_success_count {}
 explore: creations_handles_and_mode_sr {}
+explore: recurring_exec_success_count {}
 explore: 1st_exec_sr {}
 explore: active_and_paused_merchants {}
 explore: creations_os_and_mode_count {}
@@ -17,7 +18,6 @@ explore: revoke_sr {}
 explore: payer_revoke_sr {}
 explore: creations_count_handles_and_mode {}
 explore: creations_sr_across_mode {}
-explore: recurring_exec_count {}
 explore: payer_revoke_count {}
 explore: payee_revoke_count {}
 explore: pdn_count {}
