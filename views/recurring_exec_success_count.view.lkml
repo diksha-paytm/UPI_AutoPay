@@ -21,8 +21,8 @@ view: recurring_exec_success_count {
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
+              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
+              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
@@ -41,13 +41,15 @@ view: recurring_exec_success_count {
       )
       SELECT
           created_date,
+          MAX(CASE WHEN handle = 'paytm' THEN success ELSE NULL END) AS "paytm Success",
           MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END) AS "ptaxis Success",
           MAX(CASE WHEN handle = 'pthdfc' THEN success ELSE NULL END) AS "pthdfc Success",
           MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END) AS "ptsbi Success",
           MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END) AS "ptyes Success",
 
       -- Total Success Column
-      (COALESCE(MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END), 0) +
+      (COALESCE(MAX(CASE WHEN handle = 'paytm' THEN success ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END), 0) +
       COALESCE(MAX(CASE WHEN handle = 'pthdfc' THEN success ELSE NULL END), 0) +
       COALESCE(MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END), 0) +
       COALESCE(MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END), 0)) AS "Total Success"
@@ -68,6 +70,12 @@ view: recurring_exec_success_count {
   dimension: created_date {
     type: date
     sql: ${TABLE}.created_date ;;
+  }
+
+  dimension: paytm_success {
+    type: number
+    label: "paytm Success"
+    sql: ${TABLE}."paytm Success" ;;
   }
 
   dimension: ptaxis_success {
@@ -103,6 +111,7 @@ view: recurring_exec_success_count {
   set: detail {
     fields: [
       created_date,
+      paytm_success,
       ptaxis_success,
       pthdfc_success,
       ptsbi_success,
