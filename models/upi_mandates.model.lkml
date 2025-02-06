@@ -15,7 +15,6 @@ explore: revoke_sr {}
 explore: payer_revoke_sr {}
 explore: creations_count_handles_and_mode {}
 explore: creations_sr_across_mode {}
-explore: 1st_exec_count {}
 explore: recurring_exec_count {}
 explore: payer_revoke_count {}
 explore: payee_revoke_count {}
