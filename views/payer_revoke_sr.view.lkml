@@ -22,8 +22,8 @@ view: payer_revoke_sr {
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
               and first_phase != 'REQMANDATECONFIRMATION-REVOKE'
-              AND ti.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
+              AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'REVOKE'
               AND ti.status IN ('FAILURE', 'SUCCESS')

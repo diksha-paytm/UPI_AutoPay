@@ -22,8 +22,8 @@ view: payer_revoke_count {
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
               AND first_phase != 'REQMANDATECONFIRMATION-REVOKE'
-              AND ti.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
+              AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'REVOKE'
               AND ti.status IN ('FAILURE', 'SUCCESS')
@@ -53,14 +53,26 @@ view: payer_revoke_count {
           MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END) AS "ptsbi Success",
           MAX(CASE WHEN handle = 'ptsbi' THEN failure ELSE NULL END) AS "ptsbi Failure",
           MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END) AS "ptyes Success",
-          MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END) AS "ptyes Failure"
-      FROM
+          MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END) AS "ptyes Failure",
+           -- Total Success Column
+      (COALESCE(MAX(CASE WHEN handle = 'paytm' THEN success ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'pthdfc' THEN success ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END), 0)) AS "Total Success",
+           -- Total Failure Column
+      (COALESCE(MAX(CASE WHEN handle = 'paytm' THEN failure ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptaxis' THEN failure ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'pthdfc' THEN failure ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptsbi' THEN failure ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END), 0)) AS "Total Failure"
+FROM
           pivoted_data
       GROUP BY
           created_date
       ORDER BY
           created_date DESC
-       ;;
+ ;;
   }
 
   suggestions: no
@@ -135,6 +147,18 @@ view: payer_revoke_count {
     sql: ${TABLE}."ptyes Failure" ;;
   }
 
+  dimension: total_success {
+    type: number
+    label: "Total Success"
+    sql: ${TABLE}."Total Success" ;;
+  }
+
+  dimension: total_failure {
+    type: number
+    label: "Total Failure"
+    sql: ${TABLE}."Total Failure" ;;
+  }
+
   set: detail {
     fields: [
       created_date,
@@ -147,7 +171,9 @@ view: payer_revoke_count {
       ptsbi_success,
       ptsbi_failure,
       ptyes_success,
-      ptyes_failure
+      ptyes_failure,
+      total_success,
+      total_failure
     ]
   }
 }
