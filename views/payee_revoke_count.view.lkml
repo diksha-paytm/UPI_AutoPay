@@ -9,13 +9,7 @@ view: payee_revoke_count {
                       WHEN ti.status = 'SUCCESS' THEN ti.txn_id
                       ELSE NULL
                   END
-              ) AS success,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN ti.status = 'FAILURE' THEN ti.txn_id
-                      ELSE NULL
-                  END
-              ) AS failure
+              ) AS success
           FROM
               hive.switch.txn_info_snapshot_v3 ti
           WHERE
@@ -26,7 +20,7 @@ view: payee_revoke_count {
               AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'REVOKE'
-              AND ti.status IN ('FAILURE', 'SUCCESS')
+              AND ti.status IN ( 'SUCCESS')
           GROUP BY
               DATE(ti.created_on),
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1)
@@ -35,8 +29,7 @@ view: payee_revoke_count {
           SELECT
               created_date,
               handle,
-              success,
-              failure
+              success
           FROM
               handle_data
           WHERE
@@ -45,22 +38,23 @@ view: payee_revoke_count {
       SELECT
           created_date,
           MAX(CASE WHEN handle = 'paytm' THEN success ELSE NULL END) AS "Paytm Success",
-          MAX(CASE WHEN handle = 'paytm' THEN failure ELSE NULL END) AS "Paytm Failure",
           MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END) AS "ptaxis Success",
-          MAX(CASE WHEN handle = 'ptaxis' THEN failure ELSE NULL END) AS "ptaxis Failure",
           MAX(CASE WHEN handle = 'pthdfc' THEN success ELSE NULL END) AS "pthdfc Success",
-          MAX(CASE WHEN handle = 'pthdfc' THEN failure ELSE NULL END) AS "pthdfc Failure",
           MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END) AS "ptsbi Success",
-          MAX(CASE WHEN handle = 'ptsbi' THEN failure ELSE NULL END) AS "ptsbi Failure",
           MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END) AS "ptyes Success",
-          MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END) AS "ptyes Failure"
-      FROM
+           -- Total Success Column
+      (COALESCE(MAX(CASE WHEN handle = 'paytm' THEN success ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'pthdfc' THEN success ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END), 0) +
+      COALESCE(MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END), 0)) AS "Total Success"
+FROM
           pivoted_data
       GROUP BY
           created_date
       ORDER BY
           created_date DESC
-       ;;
+ ;;
   }
 
   suggestions: no
@@ -81,22 +75,10 @@ view: payee_revoke_count {
     sql: ${TABLE}."Paytm Success" ;;
   }
 
-  dimension: paytm_failure {
-    type: number
-    label: "Paytm Failure"
-    sql: ${TABLE}."Paytm Failure" ;;
-  }
-
   dimension: ptaxis_success {
     type: number
     label: "ptaxis Success"
     sql: ${TABLE}."ptaxis Success" ;;
-  }
-
-  dimension: ptaxis_failure {
-    type: number
-    label: "ptaxis Failure"
-    sql: ${TABLE}."ptaxis Failure" ;;
   }
 
   dimension: pthdfc_success {
@@ -105,22 +87,10 @@ view: payee_revoke_count {
     sql: ${TABLE}."pthdfc Success" ;;
   }
 
-  dimension: pthdfc_failure {
-    type: number
-    label: "pthdfc Failure"
-    sql: ${TABLE}."pthdfc Failure" ;;
-  }
-
   dimension: ptsbi_success {
     type: number
     label: "ptsbi Success"
     sql: ${TABLE}."ptsbi Success" ;;
-  }
-
-  dimension: ptsbi_failure {
-    type: number
-    label: "ptsbi Failure"
-    sql: ${TABLE}."ptsbi Failure" ;;
   }
 
   dimension: ptyes_success {
@@ -129,25 +99,21 @@ view: payee_revoke_count {
     sql: ${TABLE}."ptyes Success" ;;
   }
 
-  dimension: ptyes_failure {
+  dimension: total_success {
     type: number
-    label: "ptyes Failure"
-    sql: ${TABLE}."ptyes Failure" ;;
+    label: "Total Success"
+    sql: ${TABLE}."Total Success" ;;
   }
 
   set: detail {
     fields: [
       created_date,
       paytm_success,
-      paytm_failure,
       ptaxis_success,
-      ptaxis_failure,
       pthdfc_success,
-      pthdfc_failure,
       ptsbi_success,
-      ptsbi_failure,
       ptyes_success,
-      ptyes_failure
+      total_success
     ]
   }
 }
