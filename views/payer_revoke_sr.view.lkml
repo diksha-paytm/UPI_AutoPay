@@ -4,25 +4,15 @@ view: payer_revoke_sr {
           SELECT
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN ti.status = 'SUCCESS' THEN ti.txn_id
-                      ELSE NULL
-                  END
-              ) AS success,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN ti.status = 'FAILURE' THEN ti.txn_id
-                      ELSE NULL
-                  END
-              ) AS failure
+              COUNT(DISTINCT CASE WHEN ti.status = 'SUCCESS' THEN ti.txn_id END) AS success,
+              COUNT(DISTINCT CASE WHEN ti.status = 'FAILURE' THEN ti.txn_id END) AS failure
           FROM
               hive.switch.txn_info_snapshot_v3 ti
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              and first_phase != 'REQMANDATECONFIRMATION-REVOKE'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+              AND first_phase != 'REQMANDATECONFIRMATION-REVOKE'
+              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
               AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'REVOKE'
@@ -35,10 +25,7 @@ view: payer_revoke_sr {
           SELECT
               created_date,
               handle,
-              CONCAT(
-                  CAST(ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS VARCHAR),
-                  '%'
-              ) AS sr
+              ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS sr -- Keep SR as numeric
           FROM
               handle_data
           WHERE
@@ -46,18 +33,18 @@ view: payer_revoke_sr {
       )
       SELECT
           created_date,
-          MAX(CASE WHEN handle = 'paytm' THEN sr ELSE NULL END) AS "paytm SR",
-          MAX(CASE WHEN handle = 'ptaxis' THEN sr ELSE NULL END) AS "ptaxis SR",
-          MAX(CASE WHEN handle = 'pthdfc' THEN sr ELSE NULL END) AS "pthdfc SR",
-          MAX(CASE WHEN handle = 'ptsbi' THEN sr ELSE NULL END) AS "ptsbi SR",
-          MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS "ptyes SR"
-      FROM
-          pivoted_data
-      GROUP BY
-          created_date
-      ORDER BY
-          created_date DESC
- ;;
+          -- Convert numeric SR to string with '%'
+          CONCAT(CAST(MAX(CASE WHEN handle = 'paytm' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "paytm SR",
+          CONCAT(CAST(MAX(CASE WHEN handle = 'ptaxis' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptaxis SR",
+          CONCAT(CAST(MAX(CASE WHEN handle = 'pthdfc' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "pthdfc SR",
+          CONCAT(CAST(MAX(CASE WHEN handle = 'ptsbi' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptsbi SR",
+          CONCAT(CAST(MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptyes SR",
+          -- Calculate average before converting to string
+          CONCAT(CAST(ROUND(AVG(sr), 2) AS VARCHAR), '%') AS "Average SR"
+      FROM pivoted_data
+      GROUP BY created_date
+      ORDER BY created_date DESC
+       ;;
   }
 
   suggestions: no
@@ -102,6 +89,12 @@ view: payer_revoke_sr {
     sql: ${TABLE}."ptyes SR" ;;
   }
 
+  dimension: average_sr {
+    type: string
+    label: "Average SR"
+    sql: ${TABLE}."Average SR" ;;
+  }
+
   set: detail {
     fields: [
       created_date,
@@ -109,7 +102,8 @@ view: payer_revoke_sr {
       ptaxis_sr,
       pthdfc_sr,
       ptsbi_sr,
-      ptyes_sr
+      ptyes_sr,
+      average_sr
     ]
   }
 }
