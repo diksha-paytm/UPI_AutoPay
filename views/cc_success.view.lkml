@@ -51,7 +51,9 @@ view: cc_success {
         create_success AS "CREATE-Success",
         First_Exec_success AS "1stEXEC-Success",
         Recurring_Exec_success AS "RecurringEXEC-Success",
-        revoke_success AS "REVOKE-Success"
+        revoke_success AS "REVOKE-Success",
+        -- Total Success column
+          (create_success + First_Exec_success + Recurring_Exec_success + revoke_success) AS "Total-Success"
       FROM aggregated_data
       ORDER BY created_date DESC
  ;;
@@ -89,7 +91,19 @@ view: cc_success {
     sql: ${TABLE}."REVOKE-Success" ;;
   }
 
+  dimension: totalsuccess {
+    type: number
+    sql: ${TABLE}."Total-Success" ;;
+  }
+
   set: detail {
-    fields: [created_date, createsuccess, 1st_execsuccess, recurring_execsuccess, revokesuccess]
+    fields: [
+      created_date,
+      createsuccess,
+      1st_execsuccess,
+      recurring_execsuccess,
+      revokesuccess,
+      totalsuccess
+    ]
   }
 }
