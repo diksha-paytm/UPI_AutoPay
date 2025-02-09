@@ -28,8 +28,7 @@ view: creations_count_handles_and_mode {
               success,
               failure
           FROM handle_data
-          WHERE
-              initiation_mode IN ('00', '04', '13')
+          WHERE initiation_mode IN ('00', '04', '13')
       )
       SELECT
           created_date,
@@ -70,7 +69,16 @@ view: creations_count_handles_and_mode {
 
       MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '00' THEN failure ELSE NULL END) AS "ptyes_Collect_Failure",
       MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '04' THEN failure ELSE NULL END) AS "ptyes_Intent_Failure",
-      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '13' THEN failure ELSE NULL END) AS "ptyes_QR_Failure"
+      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '13' THEN failure ELSE NULL END) AS "ptyes_QR_Failure",
+
+      -- Mode-wise Totals
+      COALESCE(SUM(CASE WHEN initiation_mode = '00' THEN success ELSE 0 END), 0) AS "Collect_Mode_Success",
+      COALESCE(SUM(CASE WHEN initiation_mode = '04' THEN success ELSE 0 END), 0) AS "Intent_Mode_Success",
+      COALESCE(SUM(CASE WHEN initiation_mode = '13' THEN success ELSE 0 END), 0) AS "QR_Mode_Success",
+
+      COALESCE(SUM(CASE WHEN initiation_mode = '00' THEN failure ELSE 0 END), 0) AS "Collect_Mode_Failure",
+      COALESCE(SUM(CASE WHEN initiation_mode = '04' THEN failure ELSE 0 END), 0) AS "Intent_Mode_Failure",
+      COALESCE(SUM(CASE WHEN initiation_mode = '13' THEN failure ELSE 0 END), 0) AS "QR_Mode_Failure"
 
       FROM pivoted_data
       GROUP BY created_date
@@ -225,6 +233,36 @@ view: creations_count_handles_and_mode {
     sql: ${TABLE}.ptyes_QR_Failure ;;
   }
 
+  dimension: collect_mode_success {
+    type: number
+    sql: ${TABLE}.Collect_Mode_Success ;;
+  }
+
+  dimension: intent_mode_success {
+    type: number
+    sql: ${TABLE}.Intent_Mode_Success ;;
+  }
+
+  dimension: qr_mode_success {
+    type: number
+    sql: ${TABLE}.QR_Mode_Success ;;
+  }
+
+  dimension: collect_mode_failure {
+    type: number
+    sql: ${TABLE}.Collect_Mode_Failure ;;
+  }
+
+  dimension: intent_mode_failure {
+    type: number
+    sql: ${TABLE}.Intent_Mode_Failure ;;
+  }
+
+  dimension: qr_mode_failure {
+    type: number
+    sql: ${TABLE}.QR_Mode_Failure ;;
+  }
+
   set: detail {
     fields: [
       created_date,
@@ -254,7 +292,13 @@ view: creations_count_handles_and_mode {
       ptsbi_qr_failure,
       ptyes_collect_failure,
       ptyes_intent_failure,
-      ptyes_qr_failure
+      ptyes_qr_failure,
+      collect_mode_success,
+      intent_mode_success,
+      qr_mode_success,
+      collect_mode_failure,
+      intent_mode_failure,
+      qr_mode_failure
     ]
   }
 }
