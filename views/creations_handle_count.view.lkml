@@ -11,11 +11,11 @@ view: creations_handle_count {
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50,CURRENT_DATE)
+              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
               AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'CREATE'
-              AND ti.status IN ('SUCCESS','FAILURE')
+              AND ti.status IN ('SUCCESS', 'FAILURE')
           GROUP BY
               DATE(ti.created_on),
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1)
@@ -33,22 +33,31 @@ view: creations_handle_count {
       )
       SELECT
           created_date,
-          MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END) AS "ptaxis Success",
-          MAX(CASE WHEN handle = 'pthdfc' THEN success ELSE NULL END) AS "pthdfc Success",
-          MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END) AS "ptsbi Success",
-          MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END) AS "ptyes Success",
-          MAX(CASE WHEN handle = 'paytm' THEN failure ELSE NULL END) AS "paytm Failure",
-          MAX(CASE WHEN handle = 'ptaxis' THEN failure ELSE NULL END) AS "ptaxis Failure",
-          MAX(CASE WHEN handle = 'pthdfc' THEN failure ELSE NULL END) AS "pthdfc Failure",
-          MAX(CASE WHEN handle = 'ptsbi' THEN failure ELSE NULL END) AS "ptsbi Failure",
-          MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END) AS "ptyes Failure"
+
+      -- Success Counts
+      MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END) AS "ptaxis Success",
+      MAX(CASE WHEN handle = 'pthdfc' THEN success ELSE NULL END) AS "pthdfc Success",
+      MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END) AS "ptsbi Success",
+      MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END) AS "ptyes Success",
+
+      -- Failure Counts (including Paytm)
+      MAX(CASE WHEN handle = 'paytm' THEN failure ELSE NULL END) AS "paytm Failure",
+      MAX(CASE WHEN handle = 'ptaxis' THEN failure ELSE NULL END) AS "ptaxis Failure",
+      MAX(CASE WHEN handle = 'pthdfc' THEN failure ELSE NULL END) AS "pthdfc Failure",
+      MAX(CASE WHEN handle = 'ptsbi' THEN failure ELSE NULL END) AS "ptsbi Failure",
+      MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END) AS "ptyes Failure",
+
+      -- Total Success and Failure
+      COALESCE(SUM(success), 0) AS "Total Success",
+      COALESCE(SUM(failure), 0) AS "Total Failure"
+
       FROM
-          pivoted_data
+      pivoted_data
       GROUP BY
-          created_date
+      created_date
       ORDER BY
-          created_date DESC
- ;;
+      created_date DESC
+      ;;
   }
 
   suggestions: no
@@ -117,6 +126,18 @@ view: creations_handle_count {
     sql: ${TABLE}."ptyes Failure" ;;
   }
 
+  dimension: total_success {
+    type: number
+    label: "Total Success"
+    sql: ${TABLE}."Total Success" ;;
+  }
+
+  dimension: total_failure {
+    type: number
+    label: "Total Failure"
+    sql: ${TABLE}."Total Failure" ;;
+  }
+
   set: detail {
     fields: [
       created_date,
@@ -128,7 +149,9 @@ view: creations_handle_count {
       ptaxis_failure,
       pthdfc_failure,
       ptsbi_failure,
-      ptyes_failure
+      ptyes_failure,
+      total_success,
+      total_failure
     ]
   }
 }
