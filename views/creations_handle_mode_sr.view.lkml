@@ -24,10 +24,7 @@ view: creations_handle_mode_sr {
               created_date,
               handle,
               initiation_mode,
-              CONCAT(
-                  CAST(ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS VARCHAR),
-                  '%'
-              ) AS sr
+              ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS sr
           FROM handle_data
           WHERE initiation_mode IN ('00', '04', '13')
       )
@@ -35,36 +32,43 @@ view: creations_handle_mode_sr {
           created_date,
 
       -- PTAXIS
-      MAX(CASE WHEN handle = 'ptaxis' AND initiation_mode = '00' THEN sr ELSE NULL END) AS "ptaxis_Collect_SR",
-      MAX(CASE WHEN handle = 'ptaxis' AND initiation_mode = '04' THEN sr ELSE NULL END) AS "ptaxis_Intent_SR",
-      MAX(CASE WHEN handle = 'ptaxis' AND initiation_mode = '13' THEN sr ELSE NULL END) AS "ptaxis_QR_SR",
+      MAX(CASE WHEN handle = 'ptaxis' AND initiation_mode = '00' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "ptaxis_Collect_SR",
+      MAX(CASE WHEN handle = 'ptaxis' AND initiation_mode = '04' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "ptaxis_Intent_SR",
+      MAX(CASE WHEN handle = 'ptaxis' AND initiation_mode = '13' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "ptaxis_QR_SR",
 
       -- PTHDFC
-      MAX(CASE WHEN handle = 'pthdfc' AND initiation_mode = '00' THEN sr ELSE NULL END) AS "pthdfc_Collect_SR",
-      MAX(CASE WHEN handle = 'pthdfc' AND initiation_mode = '04' THEN sr ELSE NULL END) AS "pthdfc_Intent_SR",
-      MAX(CASE WHEN handle = 'pthdfc' AND initiation_mode = '13' THEN sr ELSE NULL END) AS "pthdfc_QR_SR",
+      MAX(CASE WHEN handle = 'pthdfc' AND initiation_mode = '00' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "pthdfc_Collect_SR",
+      MAX(CASE WHEN handle = 'pthdfc' AND initiation_mode = '04' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "pthdfc_Intent_SR",
+      MAX(CASE WHEN handle = 'pthdfc' AND initiation_mode = '13' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "pthdfc_QR_SR",
 
       -- PTSBI
-      MAX(CASE WHEN handle = 'ptsbi' AND initiation_mode = '00' THEN sr ELSE NULL END) AS "ptsbi_Collect_SR",
-      MAX(CASE WHEN handle = 'ptsbi' AND initiation_mode = '04' THEN sr ELSE NULL END) AS "ptsbi_Intent_SR",
-      MAX(CASE WHEN handle = 'ptsbi' AND initiation_mode = '13' THEN sr ELSE NULL END) AS "ptsbi_QR_SR",
+      MAX(CASE WHEN handle = 'ptsbi' AND initiation_mode = '00' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "ptsbi_Collect_SR",
+      MAX(CASE WHEN handle = 'ptsbi' AND initiation_mode = '04' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "ptsbi_Intent_SR",
+      MAX(CASE WHEN handle = 'ptsbi' AND initiation_mode = '13' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "ptsbi_QR_SR",
 
       -- PTYES
-      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '00' THEN sr ELSE NULL END) AS "ptyes_Collect_SR",
-      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '04' THEN sr ELSE NULL END) AS "ptyes_Intent_SR",
-      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '13' THEN sr ELSE NULL END) AS "ptyes_QR_SR",
+      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '00' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "ptyes_Collect_SR",
+      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '04' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "ptyes_Intent_SR",
+      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '13' THEN CONCAT(CAST(sr AS VARCHAR), '%') ELSE NULL END) AS "ptyes_QR_SR",
 
-      -- Average SR
+      -- Average SR for each mode
       CONCAT(
       CAST(ROUND(
-      (SUM(
-      CASE WHEN sr IS NOT NULL THEN CAST(REPLACE(sr, '%', '') AS DOUBLE) ELSE 0 END
-      ) / NULLIF(
-      COUNT(sr), 0
-      )), 2
-      ) AS VARCHAR),
-      '%'
-      ) AS "Average_SR"
+      SUM(CASE WHEN initiation_mode = '00' THEN sr ELSE NULL END) / NULLIF(COUNT(CASE WHEN initiation_mode = '00' THEN sr ELSE NULL END), 0),
+      2) AS VARCHAR), '%'
+      ) AS "Average_Collect_SR",
+
+      CONCAT(
+      CAST(ROUND(
+      SUM(CASE WHEN initiation_mode = '04' THEN sr ELSE NULL END) / NULLIF(COUNT(CASE WHEN initiation_mode = '04' THEN sr ELSE NULL END), 0),
+      2) AS VARCHAR), '%'
+      ) AS "Average_Intent_SR",
+
+      CONCAT(
+      CAST(ROUND(
+      SUM(CASE WHEN initiation_mode = '13' THEN sr ELSE NULL END) / NULLIF(COUNT(CASE WHEN initiation_mode = '13' THEN sr ELSE NULL END), 0),
+      2) AS VARCHAR), '%'
+      ) AS "Average_QR_SR"
 
       FROM pivoted_data
       GROUP BY created_date
@@ -144,9 +148,19 @@ view: creations_handle_mode_sr {
     sql: ${TABLE}.ptyes_QR_SR ;;
   }
 
-  dimension: average_sr {
+  dimension: average_collect_sr {
     type: string
-    sql: ${TABLE}.Average_SR ;;
+    sql: ${TABLE}.Average_Collect_SR ;;
+  }
+
+  dimension: average_intent_sr {
+    type: string
+    sql: ${TABLE}.Average_Intent_SR ;;
+  }
+
+  dimension: average_qr_sr {
+    type: string
+    sql: ${TABLE}.Average_QR_SR ;;
   }
 
   set: detail {
@@ -164,7 +178,9 @@ view: creations_handle_mode_sr {
       ptyes_collect_sr,
       ptyes_intent_sr,
       ptyes_qr_sr,
-      average_sr
+      average_collect_sr,
+      average_intent_sr,
+      average_qr_sr
     ]
   }
 }
