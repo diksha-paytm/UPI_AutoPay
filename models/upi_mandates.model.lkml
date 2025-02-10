@@ -6,7 +6,7 @@ explore: creations_mode_count {}
 explore: overall_sr {}
 explore: creations_handle_count {}
 explore: 1st_exec_failure_count {}
-explore: creations_sr {}
+explore: creations_handle_sr {}
 explore: cc_active_mandates_1st_exec {}
 explore: recurring_exec_failure_count {}
 explore: 1st_exec_success_count {}
