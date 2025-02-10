@@ -1,4 +1,4 @@
-view: creations_handles_and_mode_sr {
+view: creations_handle_mode_sr {
   derived_table: {
     sql: WITH handle_data AS (
           SELECT
@@ -52,7 +52,19 @@ view: creations_handles_and_mode_sr {
       -- PTYES
       MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '00' THEN sr ELSE NULL END) AS "ptyes_Collect_SR",
       MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '04' THEN sr ELSE NULL END) AS "ptyes_Intent_SR",
-      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '13' THEN sr ELSE NULL END) AS "ptyes_QR_SR"
+      MAX(CASE WHEN handle = 'ptyes' AND initiation_mode = '13' THEN sr ELSE NULL END) AS "ptyes_QR_SR",
+
+      -- Average SR
+      CONCAT(
+      CAST(ROUND(
+      (SUM(
+      CASE WHEN sr IS NOT NULL THEN CAST(REPLACE(sr, '%', '') AS DOUBLE) ELSE 0 END
+      ) / NULLIF(
+      COUNT(sr), 0
+      )), 2
+      ) AS VARCHAR),
+      '%'
+      ) AS "Average_SR"
 
       FROM pivoted_data
       GROUP BY created_date
@@ -132,6 +144,11 @@ view: creations_handles_and_mode_sr {
     sql: ${TABLE}.ptyes_QR_SR ;;
   }
 
+  dimension: average_sr {
+    type: string
+    sql: ${TABLE}.Average_SR ;;
+  }
+
   set: detail {
     fields: [
       created_date,
@@ -146,7 +163,8 @@ view: creations_handles_and_mode_sr {
       ptsbi_qr_sr,
       ptyes_collect_sr,
       ptyes_intent_sr,
-      ptyes_qr_sr
+      ptyes_qr_sr,
+      average_sr
     ]
   }
 }

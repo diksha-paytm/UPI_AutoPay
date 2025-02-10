@@ -10,7 +10,7 @@ explore: creations_sr {}
 explore: cc_active_mandates_1st_exec {}
 explore: recurring_exec_failure_count {}
 explore: 1st_exec_success_count {}
-explore: creations_handles_and_mode_sr {}
+explore: creations_handle_mode_sr {}
 explore: recurring_exec_success_count {}
 explore: 1st_exec_sr {}
 explore: active_and_paused_merchants {}
