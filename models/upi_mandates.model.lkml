@@ -8,6 +8,7 @@ explore: creations_handle_count {}
 explore: 1st_exec_failure_count {}
 explore: sbmd {}
 explore: creations_handle_sr {}
+explore: creations_handle_user_count {}
 explore: cc_active_mandates_1st_exec {}
 explore: recurring_exec_failure_count {}
 explore: 1st_exec_success_count {}
