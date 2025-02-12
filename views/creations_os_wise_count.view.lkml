@@ -3,7 +3,7 @@ view: creations_os_wise_count {
     sql: WITH handle_data AS (
           SELECT
               DATE(ti.created_on) AS created_date,
-              REPLACE(JSON_QUERY(ti.extended_info, 'strict$.payerOsApp'), '"', '') as Os_App,
+              REPLACE(JSON_QUERY(ti.extended_info, 'strict$.payerOsApp'), '"', '') AS Os_App,
               COUNT(DISTINCT CASE WHEN ti.status = 'SUCCESS' THEN ti.umn ELSE NULL END) AS success,
               COUNT(DISTINCT CASE WHEN ti.status = 'FAILURE' THEN ti.umn ELSE NULL END) AS failure
           FROM
@@ -11,7 +11,7 @@ view: creations_os_wise_count {
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50,CURRENT_DATE)
+              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
               AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'CREATE'
@@ -31,17 +31,19 @@ view: creations_os_wise_count {
       )
       SELECT
           created_date,
-          MAX(CASE WHEN Os_App =  'android' THEN success ELSE NULL END) AS "Android Success",
+          MAX(CASE WHEN Os_App = 'android' THEN success ELSE NULL END) AS "Android Success",
           MAX(CASE WHEN Os_App = 'android' THEN failure ELSE NULL END) AS "Android Failure",
-          MAX(CASE WHEN Os_App like 'iOS%' THEN failure ELSE NULL END) AS "iOS Failure",
-          MAX(CASE WHEN Os_App like 'iOS%' THEN success ELSE NULL END) AS "iOS Success"
-          FROM
+          MAX(CASE WHEN Os_App LIKE 'iOS%' THEN success ELSE NULL END) AS "iOS Success",
+          MAX(CASE WHEN Os_App LIKE 'iOS%' THEN failure ELSE NULL END) AS "iOS Failure",
+          COALESCE(SUM(success), 0) AS "Total Success",
+          COALESCE(SUM(failure), 0) AS "Total Failure"
+      FROM
           pivoted_data
       GROUP BY
           created_date
       ORDER BY
           created_date DESC
- ;;
+       ;;
   }
 
   suggestions: no
@@ -68,19 +70,39 @@ view: creations_os_wise_count {
     sql: ${TABLE}."Android Failure" ;;
   }
 
-  dimension: i_os_failure {
-    type: number
-    label: "iOS Failure"
-    sql: ${TABLE}."iOS Failure" ;;
-  }
-
   dimension: i_os_success {
     type: number
     label: "iOS Success"
     sql: ${TABLE}."iOS Success" ;;
   }
 
+  dimension: i_os_failure {
+    type: number
+    label: "iOS Failure"
+    sql: ${TABLE}."iOS Failure" ;;
+  }
+
+  dimension: total_success {
+    type: number
+    label: "Total Success"
+    sql: ${TABLE}."Total Success" ;;
+  }
+
+  dimension: total_failure {
+    type: number
+    label: "Total Failure"
+    sql: ${TABLE}."Total Failure" ;;
+  }
+
   set: detail {
-    fields: [created_date, android_success, android_failure, i_os_failure, i_os_success]
+    fields: [
+      created_date,
+      android_success,
+      android_failure,
+      i_os_success,
+      i_os_failure,
+      total_success,
+      total_failure
+    ]
   }
 }
