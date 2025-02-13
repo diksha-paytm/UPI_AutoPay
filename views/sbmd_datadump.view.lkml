@@ -47,7 +47,7 @@ view: sbmd_datadump {
         --and ti.status in ('FAILURE','SUCCESS')
       order by
         1 desc
-       ;;
+ ;;
   }
 
   suggestions: no
@@ -57,9 +57,9 @@ view: sbmd_datadump {
     drill_fields: [detail*]
   }
 
-  dimension: _col0 {
+  dimension: date_ {
     type: date
-    sql: ${TABLE}._col0 ;;
+    sql: ${TABLE}.date_ ;;
   }
 
   dimension: type {
@@ -134,7 +134,7 @@ view: sbmd_datadump {
 
   set: detail {
     fields: [
-      _col0,
+      date_,
       type,
       status,
       handle,
