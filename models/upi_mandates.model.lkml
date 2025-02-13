@@ -4,6 +4,7 @@ include: "/views/**/*.view"
 explore: overall_count {}
 explore: 1st_exec_user_count {}
 explore: creations_mode_count {}
+explore: creations_ptaxis_error_count {}
 explore: recurring_exec_user_count {}
 explore: recurring_user_sr {}
 explore: 1st_exec_user_sr {}
