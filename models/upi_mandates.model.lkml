@@ -7,6 +7,7 @@ explore: creations_mode_count {}
 explore: recurring_exec_user_count {}
 explore: recurring_user_sr {}
 explore: 1st_exec_user_sr {}
+explore: creations_paytm_error_count {}
 explore: overall_sr {}
 explore: creations_handle_count {}
 explore: 1st_exec_failure_count {}
