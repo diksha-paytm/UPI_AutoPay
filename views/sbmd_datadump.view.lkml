@@ -1,7 +1,7 @@
 view: sbmd_datadump {
   derived_table: {
     sql: select
-      date(ti.created_on),
+      date(ti.created_on) as date_,
         ti.type,
         status,
               SUBSTRING(
