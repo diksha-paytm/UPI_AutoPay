@@ -3,6 +3,7 @@ connection: "starburst_connection"
 include: "/views/**/*.view"
 explore: overall_count {}
 explore: 1st_exec_user_count {}
+explore: 1st_exec_ptaxis_error_count {}
 explore: creations_ptyes_error_count {}
 explore: creations_mode_count {}
 explore: creations_ptaxis_error_count {}
