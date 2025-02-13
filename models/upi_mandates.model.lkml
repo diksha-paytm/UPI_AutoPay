@@ -39,14 +39,6 @@ explore: creations_sr_across_mode {}
 explore: payer_revoke_count {}
 explore: payee_revoke_count {}
 explore: pdn_count {}
-explore: creations_error_count_handle_wise {}
-explore: overall_1st_exec_error_count {}
-explore: 1st_exec_error_count_handle_wise {}
-explore: overall_recurring_exec_error_count {}
-explore: recurring_exec_error_count_handle_wise {}
-explore: overall_revoke_error_count {}
-explore: revoke_error_count_handle_wise {}
-explore: overall_creations_error_count {}
 explore: creations_os_wise_count {}
 explore: creations_sr_os_wise {}
 explore: mandate_dtu {}
