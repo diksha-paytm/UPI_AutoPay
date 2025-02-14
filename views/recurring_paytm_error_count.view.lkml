@@ -1,4 +1,4 @@
-view: recurring_ptaxis_error_count {
+view: recurring_paytm_error_count {
   derived_table: {
     sql: WITH paytm_failures AS (
           SELECT
