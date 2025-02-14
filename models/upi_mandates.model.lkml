@@ -5,6 +5,7 @@ explore: overall_count {}
 explore: 1st_exec_user_count {}
 explore: 1st_exec_ptsbi_error_count {}
 explore: 1st_exec_pthdfc_error_count {}
+explore: recurring_ptaxis_error_count {}
 explore: 1st_exec_ptaxis_error_count {}
 explore: 1st_exec_ptyes_error_count {}
 explore: creations_ptyes_error_count {}
