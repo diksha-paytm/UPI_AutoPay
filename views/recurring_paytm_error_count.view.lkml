@@ -3,7 +3,7 @@ view: recurring_paytm_error_count {
     sql: WITH paytm_failures AS (
           SELECT
               DATE(ti.created_on) AS created_date,
-              ti.npci_resp_code,
+              COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
               COUNT(
             DISTINCT CONCAT(
                 ti.umn,

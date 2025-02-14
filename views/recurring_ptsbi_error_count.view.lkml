@@ -3,7 +3,7 @@ view: recurring_ptsbi_error_count {
     sql: WITH ptsbi_failures AS (
           SELECT
               DATE(ti.created_on) AS created_date,
-              ti.npci_resp_code,
+             COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
               COUNT(
             DISTINCT CONCAT(
                 ti.umn,

@@ -65,9 +65,6 @@ explore: cc_failure {}
 explore: cc_success{}
 explore: cc_sr {}
 explore: cc_create_error_count {}
-explore: cc_1st_exec_error {}
-explore: cc_recurring_exec_error {}
-explore: cc_revoke_error {}
 explore: cc_top_merchants {}
 explore: cc_datadump {}
 explore: active_mandates {}

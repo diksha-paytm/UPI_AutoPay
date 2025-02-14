@@ -3,7 +3,7 @@ view: revoke_ptaxis_error_count {
     sql: WITH ptaxis_failures AS (
           SELECT
               DATE(ti.created_on) AS created_date,
-              ti.npci_resp_code,
+             COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
               COUNT(DISTINCT ti.umn) AS failure
           FROM hive.switch.txn_info_snapshot_v3 ti
           WHERE
