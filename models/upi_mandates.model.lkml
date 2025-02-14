@@ -4,6 +4,7 @@ include: "/views/**/*.view"
 explore: overall_count {}
 explore: 1st_exec_user_count {}
 explore: 1st_exec_ptsbi_error_count {}
+explore: recurring_pthdfc_error_count {}
 explore: 1st_exec_pthdfc_error_count {}
 explore: recurring_paytm_error_count {}
 explore: 1st_exec_ptaxis_error_count {}
