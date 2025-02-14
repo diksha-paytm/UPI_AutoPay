@@ -25,7 +25,7 @@ view: recurring_pthdfc_error_count {
               AND ti.status = 'FAILURE'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
               AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'pthdfc'
-              and npci_resp_code is not null
+
           GROUP BY 1, 2
       ),
       latest_failures AS (

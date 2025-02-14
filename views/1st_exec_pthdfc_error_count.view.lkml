@@ -24,7 +24,7 @@ view: 1st_exec_pthdfc_error_count {
               AND ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
               AND ti.status = 'FAILURE'
-              and npci_resp_code is not null
+
               AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'pthdfc'
           GROUP BY 1, 2
       ),

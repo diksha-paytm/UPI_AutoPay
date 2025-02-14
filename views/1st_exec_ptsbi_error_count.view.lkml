@@ -17,7 +17,7 @@ view: 1st_exec_ptsbi_error_count {
           FROM hive.switch.txn_info_snapshot_v3 ti
           WHERE
               ti.business_type = 'MANDATE'
-              and npci_resp_code is not null
+
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
               AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
               AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
