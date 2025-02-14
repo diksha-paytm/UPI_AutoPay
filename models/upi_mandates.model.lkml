@@ -14,6 +14,7 @@ explore: 1st_exec_ptaxis_error_count {}
 explore: 1st_exec_ptyes_error_count {}
 explore: recurring_ptaxis_error_count {}
 explore: creations_ptyes_error_count {}
+explore: revoke_ptaxis_error_count {}
 explore: creations_mode_count {}
 explore: creations_ptaxis_error_count {}
 explore: sbmd_datadump {}
