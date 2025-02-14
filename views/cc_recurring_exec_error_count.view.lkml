@@ -1,9 +1,9 @@
-view: recurring_ptaxis_error_count {
+view: cc_recurring_exec_error_count {
   derived_table: {
-    sql: WITH ptaxis_failures AS (
+    sql: WITH failures AS (
           SELECT
               DATE(ti.created_on) AS created_date,
-             COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
+              COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
               COUNT(
             DISTINCT CONCAT(
                 ti.umn,
@@ -15,31 +15,33 @@ view: recurring_ptaxis_error_count {
             )
         ) AS failure
           FROM hive.switch.txn_info_snapshot_v3 ti
+          join hive.switch.txn_participants_snapshot_v3 tp
+          on ti.txn_id = tp.txn_id
           WHERE
               ti.business_type = 'MANDATE'
+              and tp.account_type = 'CREDIT'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
               AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
+              AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
               AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
               AND ti.status = 'FAILURE'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
-              AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'ptaxis'
-
           GROUP BY 1, 2
       ),
       latest_failures AS (
           -- Identify the latest day's failure data
           SELECT created_date
-          FROM ptaxis_failures
+          FROM failures
           ORDER BY created_date DESC
           LIMIT 1
       ),
-      top_5_codes AS (
+      top_10_codes AS (
           -- Find the top 5 failure response codes for Paytm on the latest day
           SELECT
               pf.npci_resp_code
-          FROM ptaxis_failures pf
+          FROM failures pf
           JOIN latest_failures lf
               ON pf.created_date = lf.created_date
           ORDER BY pf.failure DESC
@@ -48,7 +50,7 @@ view: recurring_ptaxis_error_count {
       daily_total_failures AS (
           -- Compute total failures for Paytm on each day
           SELECT created_date, SUM(failure) AS total_failures
-          FROM ptaxis_failures
+          FROM failures
           GROUP BY created_date
       )
       SELECT
@@ -56,8 +58,8 @@ view: recurring_ptaxis_error_count {
           pf.npci_resp_code,
           pf.failure AS count,
           dtf.total_failures AS total
-      FROM ptaxis_failures pf
-      JOIN top_5_codes t5
+      FROM failures pf
+      JOIN top_10_codes t5
           ON pf.npci_resp_code = t5.npci_resp_code
       JOIN daily_total_failures dtf
           ON pf.created_date = dtf.created_date

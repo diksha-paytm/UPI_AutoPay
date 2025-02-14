@@ -32,7 +32,7 @@ view: revoke_ptyes_error_count {
           JOIN latest_failures lf
               ON pf.created_date = lf.created_date
           ORDER BY pf.failure DESC
-          LIMIT 5
+          LIMIT 10
       ),
       daily_total_failures AS (
           -- Compute total failures for Paytm on each day

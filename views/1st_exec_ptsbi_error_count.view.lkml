@@ -43,7 +43,7 @@ view: 1st_exec_ptsbi_error_count {
           JOIN latest_failures lf
               ON hf.created_date = lf.created_date
           ORDER BY hf.failure DESC
-          LIMIT 5
+          LIMIT 10
       ),
       daily_total_failures AS (
           -- Compute total failures per day for ptaxis
