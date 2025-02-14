@@ -64,7 +64,7 @@ explore: cc_summary {}
 explore: cc_failure {}
 explore: cc_success{}
 explore: cc_sr {}
-explore: cc_create_error {}
+explore: cc_create_error_count {}
 explore: cc_1st_exec_error {}
 explore: cc_recurring_exec_error {}
 explore: cc_revoke_error {}
