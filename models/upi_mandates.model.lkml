@@ -38,7 +38,6 @@ explore: creations_pthdfc_error_count {}
 explore: creations_handle_count {}
 explore: 1st_exec_failure_count {}
 explore: creations_handle_user_sr {}
-explore: sbmd {}
 explore: creations_handle_sr {}
 explore: creations_handle_user_count {}
 explore: cc_active_mandates_1st_exec {}
