@@ -10,6 +10,7 @@ explore: sbmd_sr {}
 explore: 1st_exec_ptsbi_error_count {}
 explore: sbmd_failure {}
 explore: overall_create_error_count {}
+explore: sbmd_create_error_count {}
 explore: overall_recurring_error_count {}
 explore: cc_revoke_error_count {}
 explore: cc_1st_exec_error_count{}
