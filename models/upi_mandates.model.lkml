@@ -5,6 +5,7 @@ explore: overall_count {}
 explore: 1st_exec_user_count {}
 explore: overall_1st_exec_error_count {}
 explore: overall_revoke_error_count {}
+explore: sbmd_success_count {}
 explore: 1st_exec_ptsbi_error_count {}
 explore: overall_create_error_count {}
 explore: overall_recurring_error_count {}
