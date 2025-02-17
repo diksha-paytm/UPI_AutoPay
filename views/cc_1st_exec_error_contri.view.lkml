@@ -84,7 +84,7 @@ JOIN top_10_codes t10
     ON pf.npci_resp_code = t10.npci_resp_code
 JOIN daily_total_txns dt
     ON pf.created_date = dt.created_date
-ORDER BY pf.created_date DESC, pf.failure DESC;
+ORDER BY pf.created_date DESC, pf.failure DESC
 
        ;;
   }
