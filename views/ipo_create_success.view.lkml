@@ -9,7 +9,7 @@ view: ipo_create_success {
           JOIN hive.switch.txn_participants_snapshot_v3 tp
               ON ti.txn_id = tp.txn_id
           WHERE
-              ti.type = 'REVOKE'
+              ti.type = 'CREATE'
               AND ti.status = 'SUCCESS'  -- Only count successful revokes
               AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
               AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
