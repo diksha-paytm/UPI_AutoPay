@@ -9,6 +9,7 @@ explore: overall_revoke_error_count {}
 explore: sbmd_success_count {}
 explore: sbmd_sr {}
 explore: 1st_exec_ptsbi_error_count {}
+explore: cc_recurring_exec_count {}
 explore: ipo_create_success {}
 explore: cc_1st_exec_error_contri {}
 explore: sbmd_failure {}
