@@ -9,6 +9,7 @@ explore: overall_revoke_error_count {}
 explore: ipo_exec_failure {}
 explore: sbmd_success_count {}
 explore: cc_create_count{}
+explore: sbmd_create_count {}
 explore: ipo_create_failure {}
 explore: ipo_exec_success {}
 explore: cc_revoke_count {}
