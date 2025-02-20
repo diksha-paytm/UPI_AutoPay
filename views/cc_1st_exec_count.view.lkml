@@ -4,7 +4,6 @@ view: cc_1st_exec_count {
           SELECT
               DATE(ti.created_on) AS created_date,
               ti.status,
-              COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,  -- Handling blank response codes
               COUNT(DISTINCT CONCAT(
                   umn,
                   REPLACE(
@@ -36,7 +35,7 @@ view: cc_1st_exec_count {
               AND tp1.participant_type = 'PAYEE'
               AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.type = 'COLLECT'
-          GROUP BY 1, 2, 3
+          GROUP BY 1, 2
       ),
       aggregated_data AS (
           SELECT

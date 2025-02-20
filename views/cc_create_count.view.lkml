@@ -4,7 +4,6 @@ view: cc_create_count {
           SELECT
               DATE(ti.created_on) AS created_date,
               ti.status,
-              COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,  -- Handling blank response codes
               count(distinct ti.umn) AS txn_count
           FROM hive.switch.txn_info_snapshot_v3 ti
           JOIN hive.switch.txn_participants_snapshot_v3 tp
@@ -22,7 +21,7 @@ view: cc_create_count {
               AND tp1.participant_type = 'PAYEE'
               AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.type = 'CREATE'
-          GROUP BY 1, 2, 3
+          GROUP BY 1, 2
       ),
       aggregated_data AS (
           SELECT
