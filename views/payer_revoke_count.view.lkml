@@ -21,7 +21,7 @@ view: payer_revoke_count {
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND first_phase != 'REQMANDATECONFIRMATION-REVOKE'
+              AND first_phase = 'ReqMandate-PAYER'
               AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
               AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
