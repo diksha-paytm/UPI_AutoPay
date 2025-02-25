@@ -18,7 +18,7 @@ view: recurring_exec_failure_count {
         AND ti.type = 'COLLECT'
         AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
     GROUP BY 1
-    HAVING final_status = 'FAILURE' -- Only keep transactions whose final status is FAILURE
+    HAVING max(status) = 'FAILURE' -- Only keep transactions whose final status is FAILURE
 ),
 handle_data AS (
     -- Count only those failures where final status = 'FAILURE'
