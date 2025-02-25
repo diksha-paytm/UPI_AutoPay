@@ -1,8 +1,9 @@
 view: recurring_exec_failure_count {
   derived_table: {
     sql: WITH final_status AS (
-    -- Get final status for each (UMN, Execution Number) combination
+    -- Get final status per (UMN, Execution Number) combination for each date
     SELECT
+        DATE(ti.created_on) AS created_date,
         CONCAT(
             ti.umn,
             REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '')
@@ -17,11 +18,11 @@ view: recurring_exec_failure_count {
         AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
         AND ti.type = 'COLLECT'
         AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
-    GROUP BY 1
-    HAVING max(status) = 'FAILURE' -- Only keep transactions whose final status is FAILURE
+    GROUP BY 1, 2
+    HAVING max(status) = 'FAILURE' -- Ensure final status for that date is FAILURE
 ),
 handle_data AS (
-    -- Count only those failures where final status = 'FAILURE'
+    -- Count only those failures where final status = 'FAILURE' (date-wise)
     SELECT
         DATE(ti.created_on) AS created_date,
         SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
@@ -32,6 +33,7 @@ handle_data AS (
             ti.umn,
             REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '')
         ) = fs.unique_txn
+        AND DATE(ti.created_on) = fs.created_date -- Ensure final status check is per date
     WHERE
         ti.business_type = 'MANDATE'
         AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
@@ -40,7 +42,7 @@ handle_data AS (
         AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
         AND ti.type = 'COLLECT'
         AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
-        AND ti.status = 'FAILURE' -- Ensure we're counting only failures
+        AND ti.status = 'FAILURE' -- Count only actual failure transactions
     GROUP BY 1, 2
 ),
 pivoted_data AS (
@@ -66,7 +68,7 @@ SELECT
     COALESCE(MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END), 0)) AS "Total Failure"
 FROM pivoted_data
 GROUP BY created_date
-ORDER BY created_date DESC
+ORDER BY created_date DESC;
 
       ;;
   }
