@@ -68,7 +68,7 @@ SELECT
     COALESCE(MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END), 0)) AS "Total Failure"
 FROM pivoted_data
 GROUP BY created_date
-ORDER BY created_date DESC;
+ORDER BY created_date DESC
 
       ;;
   }

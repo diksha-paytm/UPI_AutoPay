@@ -66,7 +66,7 @@ JOIN top_5_codes t5
     ON ff.npci_resp_code = t5.npci_resp_code
 JOIN daily_total_failures dtf
     ON ff.created_date = dtf.created_date
-ORDER BY ff.failure DESC;
+ORDER BY ff.failure DESC
 
  ;;
   }
