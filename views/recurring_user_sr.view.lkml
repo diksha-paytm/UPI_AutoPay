@@ -4,7 +4,7 @@ view: recurring_user_sr {
           SELECT
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
-              round(
+          --    round(
               COUNT(
                   DISTINCT CASE
                       WHEN ti.status = 'SUCCESS' THEN CONCAT(
@@ -16,19 +16,18 @@ view: recurring_user_sr {
                       )
                       ELSE NULL
                   END
-              ) AS success,
+              ) as success ,
               COUNT(
-                  DISTINCT CONCAT(
+                    DISTINCt CONCAT(
                           tp.scope_cust_id,
                           REPLACE(
                               JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
                               '"', ''
                           )
                       )
-                      ELSE NULL
-                  END
-              )
-              ),2 as sr
+
+              ) as overall
+
           FROM hive.switch.txn_info_snapshot_v3 ti
           join hive.switch.txn_participants_snapshot_v3 tp
           on ti.txn_id = tp.txn_id
@@ -40,8 +39,18 @@ view: recurring_user_sr {
               AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
+             -- AND ti.status IN ('FAILURE', 'SUCCESS')
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
           GROUP BY 1, 2
+           ),
+      pivoted_data AS (
+          SELECT
+              created_date,
+              handle,
+              ROUND(success * 100.0 / NULLIF(overall, 0), 2) AS sr -- Numeric type for aggregation
+          FROM handle_data
+          WHERE handle IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes')
+
       )SELECT
           created_date,
           -- Convert to VARCHAR with '%' in final select
@@ -51,7 +60,7 @@ view: recurring_user_sr {
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptyes SR",
           -- Calculate Average SR and then format as percentage
           CONCAT(CAST(ROUND(AVG(sr), 2) AS VARCHAR), '%') AS "Average SR"
-      FROM handle_data
+      FROM pivoted_data
       GROUP BY created_date
       ORDER BY created_date DESC
  ;;
