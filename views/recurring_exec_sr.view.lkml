@@ -4,30 +4,29 @@ view: recurring_exec_sr {
           SELECT
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN ti.status = 'SUCCESS' THEN CONCAT(
-                          ti.umn,
-                          REPLACE(
-                              JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                              '"', ''
-                          )
-                      )
-                      ELSE NULL
-                  END
-              ) AS success,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN ti.status = 'FAILURE' THEN CONCAT(
-                          ti.umn,
-                          REPLACE(
-                              JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                              '"', ''
-                          )
-                      )
-                      ELSE NULL
-                  END
-              ) AS failure
+              ROUND(
+    COUNT(DISTINCT CASE
+        WHEN status = 'SUCCESS'
+        THEN CONCAT(
+          umn,
+          REPLACE(
+            JSON_QUERY(extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
+            '"', ''
+          )
+        )
+        ELSE NULL
+      END
+    ) * 100.0 /
+    COUNT(DISTINCT CONCAT(
+        umn,
+        REPLACE(
+          JSON_QUERY(extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
+          '"', ''
+        )
+      )
+    ),
+    2
+  ) AS sr
           FROM hive.switch.txn_info_snapshot_v3 ti
           WHERE
               ti.business_type = 'MANDATE'
@@ -37,18 +36,8 @@ view: recurring_exec_sr {
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
-              AND ti.status IN ('FAILURE', 'SUCCESS')
           GROUP BY 1, 2
-      ),
-      pivoted_data AS (
-          SELECT
-              created_date,
-              handle,
-              ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS sr -- Numeric type for aggregation
-          FROM handle_data
-          WHERE handle IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes','paytm')
-      )
-      SELECT
+      )SELECT
           created_date,
           -- Convert to VARCHAR with '%' in final select
           CONCAT(CAST(MAX(CASE WHEN handle = 'paytm' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "paytm SR",
@@ -58,7 +47,7 @@ view: recurring_exec_sr {
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptyes SR",
           -- Calculate Average SR and then format as percentage
           CONCAT(CAST(ROUND(AVG(sr), 2) AS VARCHAR), '%') AS "Average SR"
-      FROM pivoted_data
+      FROM handle_data
       GROUP BY created_date
       ORDER BY created_date DESC
  ;;

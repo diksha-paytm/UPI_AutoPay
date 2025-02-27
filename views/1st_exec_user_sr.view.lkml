@@ -4,6 +4,7 @@ view: 1st_exec_user_sr {
           SELECT
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
+              round(
               COUNT(
                   DISTINCT CASE
                       WHEN ti.status = 'SUCCESS' THEN CONCAT(
@@ -15,10 +16,9 @@ view: 1st_exec_user_sr {
                       )
                       ELSE NULL
                   END
-              ) AS success,
+              ) * 100.0 /
               COUNT(
-                  DISTINCT CASE
-                      WHEN ti.status = 'FAILURE' THEN CONCAT(
+                  DISTINCT CONCAT(
                           tp.scope_cust_id,
                           REPLACE(
                               JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
@@ -27,7 +27,8 @@ view: 1st_exec_user_sr {
                       )
                       ELSE NULL
                   END
-              ) AS failure
+              )
+              ),2 as sr
           FROM hive.switch.txn_info_snapshot_v3 ti
           join hive.switch.txn_participants_snapshot_v3 tp
           on ti.txn_id = tp.txn_id
@@ -40,18 +41,8 @@ view: 1st_exec_user_sr {
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
-              AND ti.status IN ('FAILURE', 'SUCCESS')
           GROUP BY 1, 2
-      ),
-      pivoted_data AS (
-          SELECT
-              created_date,
-              handle,
-              ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS sr -- Numeric type for aggregation
-          FROM handle_data
-          WHERE handle IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes')
-      )
-      SELECT
+      )SELECT
           created_date,
           -- Convert to VARCHAR with '%' in final select
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptaxis' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptaxis SR",
@@ -60,7 +51,7 @@ view: 1st_exec_user_sr {
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptyes SR",
           -- Calculate Average SR and then format as percentage
           CONCAT(CAST(ROUND(AVG(sr), 2) AS VARCHAR), '%') AS "Average SR"
-      FROM pivoted_data
+      FROM handle_data
       GROUP BY created_date
       ORDER BY created_date DESC
  ;;

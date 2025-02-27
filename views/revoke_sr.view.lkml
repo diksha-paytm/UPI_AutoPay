@@ -4,9 +4,18 @@ view: revoke_sr {
           SELECT
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
-              COUNT(DISTINCT CASE WHEN ti.status = 'SUCCESS' THEN ti.txn_id END) AS success,
-              COUNT(DISTINCT CASE WHEN ti.status = 'FAILURE' THEN ti.txn_id END) AS failure
-          FROM
+            ROUND(
+    COUNT(DISTINCT CASE
+        WHEN status = 'SUCCESS'
+        THEN txn_id
+        ELSE NULL
+      END
+    ) * 100.0 /
+    COUNT(DISTINCT txn_id
+    ),
+    2
+  ) AS sr
+  FROM
               hive.switch.txn_info_snapshot_v3 ti
           WHERE
               ti.business_type = 'MANDATE'
@@ -15,20 +24,10 @@ view: revoke_sr {
               AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'REVOKE'
-              AND ti.status IN ('FAILURE', 'SUCCESS')
+
           GROUP BY
               DATE(ti.created_on),
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1)
-      ),
-      pivoted_data AS (
-          SELECT
-              created_date,
-              handle,
-              ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS sr -- Keep SR as numeric
-          FROM
-              handle_data
-          WHERE
-              handle IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes', 'paytm')
       )
       SELECT
           created_date,
@@ -40,7 +39,7 @@ view: revoke_sr {
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptyes SR",
           -- Calculate average before converting to string
           CONCAT(CAST(ROUND(AVG(sr), 2) AS VARCHAR), '%') AS "Average SR"
-      FROM pivoted_data
+      FROM handle_data
       GROUP BY created_date
       ORDER BY created_date DESC
  ;;

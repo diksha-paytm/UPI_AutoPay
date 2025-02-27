@@ -4,18 +4,17 @@ view: overall_sr {
           SELECT
               DATE(created_on) AS created_date,
               'CREATE' AS auto_pay_category,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN status = 'SUCCESS' THEN umn
-                      ELSE NULL
-                  END
-              ) AS success,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN status = 'FAILURE' THEN umn
-                      ELSE NULL
-                  END
-              ) AS failure
+              ROUND(
+    COUNT(DISTINCT CASE
+        WHEN status = 'SUCCESS'
+        THEN umn
+        ELSE NULL
+      END
+    ) * 100.0 /
+    COUNT(DISTINCT umn)
+    ),
+    2
+  ) AS sr
           FROM
               hive.switch.txn_info_snapshot_v3
           WHERE
@@ -30,7 +29,6 @@ view: overall_sr {
           FROM
             POSITION('@' IN umn) + 1
         ) NOT IN ('PAYTM', 'PayTM', 'PayTm', 'Paytm','paytm')
-              AND status IN ('FAILURE', 'SUCCESS')
           GROUP BY
               1
       ),
@@ -38,32 +36,29 @@ view: overall_sr {
           SELECT
               DATE(ti.created_on) AS created_date,
               '1st Execution' AS auto_pay_category,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN status = 'SUCCESS' THEN CONCAT(
+             ROUND(
+    COUNT(DISTINCT CASE
+        WHEN status = 'SUCCESS'
+        THEN CONCAT(
                           umn,
                           REPLACE(
                               JSON_QUERY(extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
                               '"',
                               ''
                           )
-                      )
-                      ELSE NULL
-                  END
-              ) AS success,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN status = 'FAILURE' THEN CONCAT(
+        ELSE NULL
+      END
+    ) * 100.0 /
+    COUNT(DISTINCT CONCAT(
                           umn,
                           REPLACE(
                               JSON_QUERY(extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
                               '"',
                               ''
-                          )
-                      )
-                      ELSE NULL
-                  END
-              ) AS failure
+                          ))
+    ),
+    2
+  ) AS sr
           FROM
               hive.switch.txn_info_snapshot_v3 ti
           WHERE
@@ -74,7 +69,6 @@ view: overall_sr {
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
-              AND ti.status IN ('FAILURE', 'SUCCESS')
           GROUP BY
               1
       ),
@@ -82,32 +76,29 @@ view: overall_sr {
           SELECT
               DATE(created_on) AS created_date,
               '>1 Executions' AS auto_pay_category,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN status = 'SUCCESS' THEN CONCAT(
+              ROUND(
+    COUNT(DISTINCT CASE
+        WHEN status = 'SUCCESS'
+        THEN CONCAT(
                           umn,
                           REPLACE(
                               JSON_QUERY(extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
                               '"',
                               ''
                           )
-                      )
-                      ELSE NULL
-                  END
-              ) AS success,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN status = 'FAILURE' THEN CONCAT(
+        ELSE NULL
+      END
+    ) * 100.0 /
+    COUNT(DISTINCT CONCAT(
                           umn,
                           REPLACE(
                               JSON_QUERY(extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
                               '"',
                               ''
-                          )
-                      )
-                      ELSE NULL
-                  END
-              ) AS failure
+                          ))
+    ),
+    2
+  ) AS sr
           FROM
               hive.switch.txn_info_snapshot_v3
           WHERE
@@ -118,7 +109,6 @@ view: overall_sr {
               AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'COLLECT'
-              AND status IN ('FAILURE', 'SUCCESS')
           GROUP BY
               1
       ),
@@ -126,18 +116,17 @@ view: overall_sr {
           SELECT
               DATE(created_on) AS created_date,
               'Revoke' AS auto_pay_category,
-              COUNT(
-                  CASE
-                      WHEN status = 'SUCCESS' THEN txn_id
-                      ELSE NULL
-                  END
-              ) AS success,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN status = 'FAILURE' THEN txn_id
-                      ELSE NULL
-                  END
-              ) AS failure
+               ROUND(
+    COUNT(DISTINCT CASE
+        WHEN status = 'SUCCESS'
+        THEN txn_id
+        ELSE NULL
+      END
+    ) * 100.0 /
+    COUNT(DISTINCT txn_id
+    ),
+    2
+  ) AS sr
           FROM
               hive.switch.txn_info_snapshot_v3 ti
           WHERE
@@ -147,7 +136,6 @@ view: overall_sr {
               AND created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'REVOKE'
-              AND status IN ('FAILURE', 'SUCCESS')
           GROUP BY
               1
       ),
@@ -155,18 +143,17 @@ view: overall_sr {
           SELECT
               DATE(created_on) AS created_date,
               'PDN' AS auto_pay_category,
-              COUNT(
-                  CASE
-                      WHEN status = 'SUCCESS' THEN 1
-                      ELSE NULL
-                  END
-              ) AS success,
-              COUNT(
-                   CASE
-                      WHEN status = 'FAILURE' THEN 1
-                      ELSE NULL
-                  END
-              ) AS failure
+             ROUND(
+    COUNT(DISTINCT CASE
+        WHEN status = 'SUCCESS'
+        THEN 1
+        ELSE NULL
+      END
+    ) * 100.0 /
+    COUNT(DISTINCT 1
+    ),
+    2
+  ) AS sr
           FROM
               hive.switch.financial_notification_snapshot_v3 fn
           WHERE

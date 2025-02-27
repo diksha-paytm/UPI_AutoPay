@@ -4,6 +4,7 @@ view: recurring_user_sr {
           SELECT
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
+              round(
               COUNT(
                   DISTINCT CASE
                       WHEN ti.status = 'SUCCESS' THEN CONCAT(
@@ -17,8 +18,7 @@ view: recurring_user_sr {
                   END
               ) AS success,
               COUNT(
-                  DISTINCT CASE
-                      WHEN ti.status = 'FAILURE' THEN CONCAT(
+                  DISTINCT CONCAT(
                           tp.scope_cust_id,
                           REPLACE(
                               JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
@@ -27,41 +27,31 @@ view: recurring_user_sr {
                       )
                       ELSE NULL
                   END
-              ) AS failure
+              )
+              ),2 as sr
           FROM hive.switch.txn_info_snapshot_v3 ti
           join hive.switch.txn_participants_snapshot_v3 tp
           on ti.txn_id = tp.txn_id
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
+              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
+              AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
+              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
-              AND ti.status IN ('FAILURE', 'SUCCESS')
           GROUP BY 1, 2
-      ),
-      pivoted_data AS (
-          SELECT
-              created_date,
-              handle,
-              ROUND(success * 100.0 / NULLIF(success + failure, 0), 2) AS sr -- Numeric type for aggregation
-          FROM handle_data
-          WHERE handle IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes','paytm')
-      )
-      SELECT
+      )SELECT
           created_date,
           -- Convert to VARCHAR with '%' in final select
-          CONCAT(CAST(MAX(CASE WHEN handle = 'paytm' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "paytm SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptaxis' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptaxis SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'pthdfc' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "pthdfc SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptsbi' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptsbi SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptyes SR",
           -- Calculate Average SR and then format as percentage
           CONCAT(CAST(ROUND(AVG(sr), 2) AS VARCHAR), '%') AS "Average SR"
-      FROM pivoted_data
+      FROM handle_data
       GROUP BY created_date
       ORDER BY created_date DESC
  ;;
