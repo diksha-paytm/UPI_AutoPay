@@ -54,7 +54,7 @@ SELECT
     m."QR_SR"
 FROM os_wise_sr o
 JOIN mode_wise_sr m ON o.created_date = m.created_date
-ORDER BY o.created_date DESC;
+ORDER BY o.created_date DESC
 
       ;;
   }
