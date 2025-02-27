@@ -7,24 +7,15 @@ view: creations_handle_user_sr {
           --    round(
               COUNT(
                   DISTINCT CASE
-                      WHEN ti.status = 'SUCCESS' THEN CONCAT(
-                          tp.scope_cust_id,
-                          REPLACE(
-                              JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                              '"', ''
-                          )
-                      )
+                      WHEN ti.status = 'SUCCESS' THEN
+                          tp.scope_cust_id
+
                       ELSE NULL
                   END
               ) as success ,
               COUNT(
-                    DISTINCt CONCAT(
-                          tp.scope_cust_id,
-                          REPLACE(
-                              JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                              '"', ''
-                          )
-                      )
+                    DISTINCt
+                          tp.scope_cust_id
 
               ) as overall
 
