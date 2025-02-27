@@ -12,9 +12,7 @@ view: creations_handle_mode_sr {
         ELSE NULL
       END
     ) * 100.0 /
-    COUNT(DISTINCT umn)
-    ),
-    2
+   NULLIF(COUNT(DISTINCT umn), 0), 2
   ) AS sr
   FROM hive.switch.txn_info_snapshot_v3 ti
           WHERE

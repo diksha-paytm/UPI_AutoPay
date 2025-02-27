@@ -16,7 +16,7 @@ view: creations_sr_across_mode {
       END
     ) * 100.0 /
     NULLIF(COUNT(DISTINCT umn), 0), 2
-  ) AS sr
+  ) AS sr_value
   FROM
               hive.switch.txn_info_snapshot_v3 ti
           WHERE
