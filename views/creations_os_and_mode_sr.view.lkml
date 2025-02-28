@@ -41,9 +41,9 @@ os_wise_sr AS (
 mode_wise_sr AS (
     SELECT
         created_date,
-        MAX(CASE WHEN initiation_mode = '00' THEN sr ELSE NULL END) AS "Collect_SR",
-        MAX(CASE WHEN initiation_mode = '04' THEN sr ELSE NULL END) AS "Intent_SR",
-        MAX(CASE WHEN initiation_mode = '13' THEN sr ELSE NULL END) AS "QR_SR"
+        AVG(CASE WHEN initiation_mode = '00' THEN sr ELSE NULL END) AS "Collect_SR",
+        AVG(CASE WHEN initiation_mode = '04' THEN sr ELSE NULL END) AS "Intent_SR",
+        AVG(CASE WHEN initiation_mode = '13' THEN sr ELSE NULL END) AS "QR_SR"
     FROM handle_data
     GROUP BY created_date
 )
