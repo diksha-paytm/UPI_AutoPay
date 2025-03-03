@@ -1,67 +1,73 @@
 view: 1st_exec_pthdfc_error_count {
   derived_table: {
-    sql: WITH handle_failures AS (
+    sql: WITH final_status AS (
           SELECT
               DATE(ti.created_on) AS created_date,
-               COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
-              COUNT(
-                  DISTINCT CONCAT(
-                      ti.umn,
-                      REPLACE(
-                          JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                          '"',
-                          ''
-                      )
+              COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
+              CONCAT(
+                  umn,
+                  REPLACE(
+                      JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
+                      '"', ''
                   )
-              ) AS failure
+              ) AS combi,
+              MAX(ti.status) AS final_status
           FROM hive.switch.txn_info_snapshot_v3 ti
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
+              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
+              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
-              AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
-              AND ti.status = 'FAILURE'
-
               AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'pthdfc'
+              AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
+          GROUP BY 1, 2, 3
+      ),
+      failure_data AS (
+          -- Count only those where the final status = 'FAILURE'
+          SELECT
+              fs.created_date,
+              fs.npci_resp_code,
+              COUNT(DISTINCT fs.combi) AS failure_count
+          FROM final_status fs
+          WHERE fs.final_status = 'FAILURE'
           GROUP BY 1, 2
       ),
       latest_failures AS (
-          -- Identify the latest day's failure data for ptaxis
+          -- Identify the latest day's failure data
           SELECT created_date
-          FROM handle_failures
+          FROM failure_data
           ORDER BY created_date DESC
           LIMIT 1
       ),
-      top_5_codes AS (
-          -- Extract top 5 failure response codes for ptaxis on the latest day
+      top_10_codes AS (
+          -- Find the top 10 failure response codes for Paytm on the latest day
           SELECT
-              hf.npci_resp_code
-          FROM handle_failures hf
+              fd.npci_resp_code
+          FROM failure_data fd
           JOIN latest_failures lf
-              ON hf.created_date = lf.created_date
-          ORDER BY hf.failure DESC
+              ON fd.created_date = lf.created_date
+          ORDER BY fd.failure_count DESC
           LIMIT 10
       ),
       daily_total_failures AS (
-          -- Compute total failures per day for ptaxis
-          SELECT created_date, SUM(failure) AS total_failures
-          FROM handle_failures
+          -- Compute total failures for Paytm on each day
+          SELECT created_date, SUM(failure_count) AS total_failures
+          FROM failure_data
           GROUP BY created_date
       )
       SELECT
-          hf.created_date,
-          hf.npci_resp_code,
-          hf.failure AS count,
+          fd.created_date,
+          fd.npci_resp_code,
+          fd.failure_count AS count,
           dtf.total_failures AS total
-      FROM handle_failures hf
-      JOIN top_5_codes t5
-          ON hf.npci_resp_code = t5.npci_resp_code
+      FROM failure_data fd
+      JOIN top_10_codes t10
+          ON fd.npci_resp_code = t10.npci_resp_code
       JOIN daily_total_failures dtf
-          ON hf.created_date = dtf.created_date
-      ORDER BY hf.created_date DESC, hf.failure DESC
+          ON fd.created_date = dtf.created_date
+      ORDER BY fd.created_date DESC, fd.failure_count DESC
        ;;
   }
 

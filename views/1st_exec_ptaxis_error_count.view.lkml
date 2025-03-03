@@ -20,7 +20,7 @@ view: 1st_exec_ptaxis_error_count {
               AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
-              AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'pthdfc'
+              AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'ptaxis'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
           GROUP BY 1, 2, 3
       ),
