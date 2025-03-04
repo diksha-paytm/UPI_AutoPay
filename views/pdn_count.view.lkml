@@ -8,23 +8,23 @@ view: pdn_count {
           FROM
             POSITION('@' IN fn.txn_ref_id) + 1
         ) AS handle,
-              COUNT(
+              COUNT(distinct
                    CASE
-                      WHEN fn.status = 'SUCCESS' THEN 1
+                      WHEN fn.status = 'SUCCESS' THEN fn.txn_ref_id
                       ELSE NULL
                   END
               ) AS success,
-              COUNT(
+              COUNT(distinct
                    CASE
-                      WHEN fn.status = 'FAILURE' THEN 1
+                      WHEN fn.status = 'FAILURE' THEN fn.txn_ref_id
                       ELSE NULL
                   END
               ) AS failure
           FROM
               hive.switch.financial_notification_snapshot_v3 fn
           WHERE
-               fn.dl_last_updated >= DATE_ADD('day', -100,CURRENT_DATE)
-              AND fn.created_on >= CAST(DATE_ADD('day', -100, CURRENT_DATE) AS TIMESTAMP)
+               fn.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+              AND fn.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND fn.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND fn.status IN ('FAILURE', 'SUCCESS')
           GROUP BY

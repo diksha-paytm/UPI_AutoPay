@@ -11,6 +11,7 @@ explore: sbmd_revoke_count {}
 explore: overall_revoke_error_count {}
 explore: sbmd_recurring_exec_error_count {}
 explore: ipo_exec_failure {}
+explore: pdn_user_count {}
 explore: sbmd_1st_exec_error_count {}
 explore: sbmd_1st_exec_count {}
 explore: sbmd_success_count {}
