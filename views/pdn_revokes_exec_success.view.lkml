@@ -60,7 +60,7 @@ view: pdn_revokes_exec_success {
       FROM revoke_check
       GROUP BY pdn_created_date
       ORDER BY pdn_created_date desc
-       ;;
+ ;;
   }
 
   suggestions: no
