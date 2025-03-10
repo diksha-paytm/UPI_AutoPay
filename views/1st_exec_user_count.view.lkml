@@ -1,87 +1,66 @@
 view: 1st_exec_user_count {
   derived_table: {
-    sql: WITH handle_data AS (
+    sql: WITH final_status AS (
+          -- Select the max status per (scopeCustId, Execution Number, Date)
           SELECT
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN ti.status = 'SUCCESS' THEN CONCAT(
-                          tp.scope_cust_id,
-                          REPLACE(
-                              JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                              '"',
-                              ''
-                          )
-                      )
-                      ELSE NULL
-                  END
-              ) AS success,
-              COUNT(
-                  DISTINCT CASE
-                      WHEN ti.status = 'FAILURE' THEN CONCAT(
-                          tp.scope_cust_id,
-                          REPLACE(
-                              JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                              '"',
-                              ''
-                          )
-                      )
-                      ELSE NULL
-                  END
-              ) AS failure
+              CONCAT(
+                  tp.scope_cust_id,
+                  REPLACE(
+                      JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
+                      '"',
+                      ''
+                  )
+              ) AS combi,
+              MAX(ti.status) AS final_status  -- Pick the highest status per Execution Number
           FROM hive.switch.txn_info_snapshot_v3 ti
-          join
-          hive.switch.txn_participants_snapshot_v3 tp
-          on ti.txn_id=tp.txn_id
+          JOIN hive.switch.txn_participants_snapshot_v3 tp
+              ON ti.txn_id = tp.txn_id
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
+              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
+              AND tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
+              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
-              AND ti.status IN ('SUCCESS','FAILURE')
-          GROUP BY
-              DATE(ti.created_on),
-              SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1)
+          GROUP BY 1, 2, 3
       ),
-      pivoted_data AS (
+      status_counts AS (
+          -- Count distinct execution attempts per status
           SELECT
               created_date,
               handle,
-              success,
-              failure
-          FROM handle_data
-          WHERE handle IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes', 'paytm')
+              final_status,
+              COUNT(DISTINCT combi) AS status_count
+          FROM final_status
+          WHERE final_status IN ('SUCCESS', 'FAILURE') -- Only include relevant statuses
+          GROUP BY 1, 2, 3
       )
       SELECT
-          created_date,
-          MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END) AS "ptaxis Success",
-          MAX(CASE WHEN handle = 'pthdfc' THEN success ELSE NULL END) AS "pthdfc Success",
-          MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END) AS "ptsbi Success",
-          MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END) AS "ptyes Success",
-          MAX(CASE WHEN handle = 'ptaxis' THEN failure ELSE NULL END) AS "ptaxis Failure",
-          MAX(CASE WHEN handle = 'pthdfc' THEN failure ELSE NULL END) AS "pthdfc Failure",
-          MAX(CASE WHEN handle = 'ptsbi' THEN failure ELSE NULL END) AS "ptsbi Failure",
-          MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END) AS "ptyes Failure",
+          sc.created_date,
+          -- Success Counts
+          MAX(CASE WHEN handle = 'paytm' AND final_status = 'SUCCESS' THEN status_count ELSE NULL END) AS "paytm Success",
+          MAX(CASE WHEN handle = 'ptaxis' AND final_status = 'SUCCESS' THEN status_count ELSE NULL END) AS "ptaxis Success",
+          MAX(CASE WHEN handle = 'pthdfc' AND final_status = 'SUCCESS' THEN status_count ELSE NULL END) AS "pthdfc Success",
+          MAX(CASE WHEN handle = 'ptsbi' AND final_status = 'SUCCESS' THEN status_count ELSE NULL END) AS "ptsbi Success",
+          MAX(CASE WHEN handle = 'ptyes' AND final_status = 'SUCCESS' THEN status_count ELSE NULL END) AS "ptyes Success",
 
-      -- Total Success Column
-      (COALESCE(MAX(CASE WHEN handle = 'ptaxis' THEN success ELSE NULL END), 0) +
-      COALESCE(MAX(CASE WHEN handle = 'pthdfc' THEN success ELSE NULL END), 0) +
-      COALESCE(MAX(CASE WHEN handle = 'ptsbi' THEN success ELSE NULL END), 0) +
-      COALESCE(MAX(CASE WHEN handle = 'ptyes' THEN success ELSE NULL END), 0)) AS "Total Success",
-      -- Total Failure Column
-      (COALESCE(MAX(CASE WHEN handle = 'ptaxis' THEN failure ELSE NULL END), 0) +
-      COALESCE(MAX(CASE WHEN handle = 'pthdfc' THEN failure ELSE NULL END), 0) +
-      COALESCE(MAX(CASE WHEN handle = 'ptsbi' THEN failure ELSE NULL END), 0) +
-      COALESCE(MAX(CASE WHEN handle = 'ptyes' THEN failure ELSE NULL END), 0)) AS "Total Failure"
+      -- Failure Counts
+      MAX(CASE WHEN handle = 'paytm' AND final_status = 'FAILURE' THEN status_count ELSE NULL END) AS "paytm Failure",
+      MAX(CASE WHEN handle = 'ptaxis' AND final_status = 'FAILURE' THEN status_count ELSE NULL END) AS "ptaxis Failure",
+      MAX(CASE WHEN handle = 'pthdfc' AND final_status = 'FAILURE' THEN status_count ELSE NULL END) AS "pthdfc Failure",
+      MAX(CASE WHEN handle = 'ptsbi' AND final_status = 'FAILURE' THEN status_count ELSE NULL END) AS "ptsbi Failure",
+      MAX(CASE WHEN handle = 'ptyes' AND final_status = 'FAILURE' THEN status_count ELSE NULL END) AS "ptyes Failure",
 
-      FROM pivoted_data
-      GROUP BY created_date
-      ORDER BY created_date DESC
+      -- Total Success & Failure Counts
+      (COALESCE(MAX(CASE WHEN final_status = 'SUCCESS' THEN status_count ELSE NULL END), 0)) AS "Total Success",
+      (COALESCE(MAX(CASE WHEN final_status = 'FAILURE' THEN status_count ELSE NULL END), 0)) AS "Total Failure"
+      FROM status_counts sc
+      GROUP BY sc.created_date
+      ORDER BY sc.created_date DESC
       ;;
   }
 
@@ -95,6 +74,12 @@ view: 1st_exec_user_count {
   dimension: created_date {
     type: date
     sql: ${TABLE}.created_date ;;
+  }
+
+  dimension: paytm_success {
+    type: number
+    label: "paytm Success"
+    sql: ${TABLE}."paytm Success" ;;
   }
 
   dimension: ptaxis_success {
@@ -119,6 +104,12 @@ view: 1st_exec_user_count {
     type: number
     label: "ptyes Success"
     sql: ${TABLE}."ptyes Success" ;;
+  }
+
+  dimension: paytm_failure {
+    type: number
+    label: "paytm Failure"
+    sql: ${TABLE}."paytm Failure" ;;
   }
 
   dimension: ptaxis_failure {
@@ -160,10 +151,12 @@ view: 1st_exec_user_count {
   set: detail {
     fields: [
       created_date,
+      paytm_success,
       ptaxis_success,
       pthdfc_success,
       ptsbi_success,
       ptyes_success,
+      paytm_failure,
       ptaxis_failure,
       pthdfc_failure,
       ptsbi_failure,
