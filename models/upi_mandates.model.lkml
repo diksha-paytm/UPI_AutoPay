@@ -17,7 +17,7 @@ explore: pdn_user_count {}
 explore: sbmd_1st_exec_error_count {}
 explore: sbmd_1st_exec_count {}
 explore: sbmd_success_count {}
-explore: cc_create_count{}
+explore: cc_create_count {}
 explore: sbmd_create_count {}
 explore: ipo_create_failure {}
 explore: ipo_exec_success {}
