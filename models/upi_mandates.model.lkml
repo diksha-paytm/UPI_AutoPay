@@ -8,6 +8,7 @@ explore: cc_1st_exec_count {}
 explore: sbmd_revoke_error_count {}
 explore: sbmd_recurring_exec_count {}
 explore: sbmd_revoke_count {}
+explore: revokes_user_handle_count {}
 explore: pdn_revokes_exec_failure {}
 explore: overall_revoke_error_count {}
 explore: sbmd_recurring_exec_error_count {}
