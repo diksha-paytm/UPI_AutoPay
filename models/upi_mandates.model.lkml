@@ -73,7 +73,6 @@ explore: recurring_exec_success_count {}
 explore: 1st_exec_sr {}
 explore: active_and_paused_merchants {}
 explore: creations_os_and_mode_count {}
-explore: recurring_exec_sr {}
 explore: revoke_sr {}
 explore: payer_revoke_sr {}
 explore: creations_count_handles_and_mode {}

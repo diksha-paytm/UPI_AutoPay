@@ -11,9 +11,11 @@ view: payer_revoke_sr {
         ELSE NULL
       END
     ) * 100.0 /
-   NULLIF(COUNT(DISTINCT txn_id), 0), 2
-  ) AS sr   FROM
-              hive.switch.txn_info_snapshot_v3 ti
+    COUNT(DISTINCT txn_id
+    ),
+    2
+  ) AS sr
+          FROM hive.switch.txn_info_snapshot_v3 ti
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
@@ -22,20 +24,15 @@ view: payer_revoke_sr {
               AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'REVOKE'
-
-          GROUP BY
-              DATE(ti.created_on),
-              SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1)
-      )
-      SELECT
+          GROUP BY 1, 2
+      )SELECT
           created_date,
-          -- Convert numeric SR to string with '%'
-          CONCAT(CAST(MAX(CASE WHEN handle = 'paytm' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "paytm SR",
+          -- Convert to VARCHAR with '%' in final select
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptaxis' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptaxis SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'pthdfc' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "pthdfc SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptsbi' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptsbi SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptyes' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptyes SR",
-          -- Calculate average before converting to string
+          -- Calculate Average SR and then format as percentage
           CONCAT(CAST(ROUND(AVG(sr), 2) AS VARCHAR), '%') AS "Average SR"
       FROM handle_data
       GROUP BY created_date
