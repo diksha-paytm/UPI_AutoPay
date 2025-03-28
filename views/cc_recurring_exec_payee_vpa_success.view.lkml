@@ -33,7 +33,7 @@ view: cc_recurring_exec_payee_vpa_success {
       DATE(ti.created_on) AS created_date,
       tp1.vpa AS payee_vpa,
       tp1.name AS payee_name,
-      COUNT(DISTINCT ti.umn) AS successful_mandates
+      COUNT(DISTINCT ti.umn) AS count
       FROM hive.switch.txn_info_snapshot_v3 ti
       JOIN hive.switch.txn_participants_snapshot_v3 tp
       ON ti.txn_id = tp.txn_id
