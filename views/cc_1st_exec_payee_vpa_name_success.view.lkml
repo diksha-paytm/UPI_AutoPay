@@ -18,7 +18,7 @@ view: cc_1st_exec_payee_vpa_name_success {
         AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
         AND ti.type = 'COLLECT'
         AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
-        AND ti.status = 'SUCCESS'
+        --AND ti.status = 'SUCCESS'
         AND tp.participant_type = 'PAYEE'
 ),
 
