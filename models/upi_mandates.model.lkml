@@ -4,6 +4,7 @@ include: "/views/**/*.view"
 explore: overall_count {}
 explore: ptyes_vs_others_creations_sr {}
 explore: 1st_exec_user_count {}
+explore: cc_recurring_exec_payee_vpa_success {}
 explore: overall_1st_exec_error_count {}
 explore: cc_1st_exec_count {}
 explore: ptyes_vs_others_creations_error_contri {}
