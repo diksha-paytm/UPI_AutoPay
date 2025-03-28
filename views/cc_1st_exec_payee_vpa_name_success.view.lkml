@@ -61,7 +61,7 @@ all_dates_successful_txns AS (
 -- Final Output
 SELECT *
 FROM all_dates_successful_txns
-ORDER BY created_date DESC, successful_mandates DESC
+ORDER BY created_date DESC, count DESC
 
       ;;
   }
