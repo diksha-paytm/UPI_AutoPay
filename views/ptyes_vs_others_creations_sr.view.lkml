@@ -15,7 +15,7 @@ view: ptyes_vs_others_creations_sr {
               AND created_on >= CAST(DATE_ADD('day', -7, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'CREATE'
-              AND SUBSTRING(umn FROM POSITION('@' IN umn) + 1) IN ('ptyes', 'ptaxis', 'pthdfc')
+              AND SUBSTRING(umn FROM POSITION('@' IN umn) + 1) IN ('ptsbi','ptyes', 'ptaxis', 'pthdfc')
           GROUP BY 1, 2
       ),
       pivot_data AS (
@@ -33,7 +33,11 @@ view: ptyes_vs_others_creations_sr {
               ROUND(
                   MAX(CASE WHEN handle = 'ptaxis' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END),
                   2
-              ) AS ptaxis_sr
+              ) AS ptaxis_sr,
+              ROUND(
+                  MAX(CASE WHEN handle = 'ptsbi' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END),
+                  2
+              ) AS ptsbi_sr
           FROM base_sr
           GROUP BY 1
       ),
@@ -42,7 +46,8 @@ view: ptyes_vs_others_creations_sr {
           SELECT
               ROUND(SUM(p.ptyes_sr) / COUNT(p.ptyes_sr), 2) AS last_7_ptyes_sr,
               ROUND(SUM(p.pthdfc_sr) / COUNT(p.pthdfc_sr), 2) AS last_7_pthdfc_sr,
-              ROUND(SUM(p.ptaxis_sr) / COUNT(p.ptaxis_sr), 2) AS last_7_ptaxis_sr
+              ROUND(SUM(p.ptaxis_sr) / COUNT(p.ptaxis_sr), 2) AS last_7_ptaxis_sr,
+              ROUND(SUM(p.ptsbi_sr) / COUNT(p.ptsbi_sr), 2) AS last_7_ptsbi_sr
           FROM pivot_data p
       )
       SELECT
@@ -62,6 +67,12 @@ view: ptyes_vs_others_creations_sr {
       '%'
       ) AS "D-1 (ptyes - pthdfc)",
 
+      CONCAT(
+      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP)
+      THEN p.ptyes_sr - p.ptsbi_sr ELSE NULL END) AS VARCHAR),
+      '%'
+      ) AS "D-1 (ptyes - ptsbi)",
+
       -- D-2 Success Rates
       CONCAT(
       CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP)
@@ -75,6 +86,12 @@ view: ptyes_vs_others_creations_sr {
       '%'
       ) AS "D-2 (ptyes - pthdfc)",
 
+      CONCAT(
+      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP)
+      THEN p.ptyes_sr - p.ptsbi_sr ELSE NULL END) AS VARCHAR),
+      '%'
+      ) AS "D-2 (ptyes - ptsbi)",
+
       -- D-3 Success Rates
       CONCAT(
       CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP)
@@ -87,6 +104,11 @@ view: ptyes_vs_others_creations_sr {
       THEN p.ptyes_sr - p.pthdfc_sr ELSE NULL END) AS VARCHAR),
       '%'
       ) AS "D-3 (ptyes - pthdfc)",
+      CONCAT(
+      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP)
+      THEN p.ptyes_sr - p.ptsbi_sr ELSE NULL END) AS VARCHAR),
+      '%'
+      ) AS "D-3 (ptyes - ptsbi)",
 
       -- Last 7 Days Success Rates
       CONCAT(
@@ -97,11 +119,16 @@ view: ptyes_vs_others_creations_sr {
       CONCAT(
       CAST((l.last_7_ptyes_sr - l.last_7_pthdfc_sr) AS VARCHAR),
       '%'
-      ) AS "Last 7 Days (ptyes - pthdfc)"
+      ) AS "Last 7 Days (ptyes - pthdfc)",
+
+      CONCAT(
+      CAST((l.last_7_ptyes_sr - l.last_7_ptsbi_sr) AS VARCHAR),
+      '%'
+      ) AS "Last 7 Days (ptyes - ptsbi)"
 
       FROM pivot_data p
       LEFT JOIN last_7_days_agg l ON 1=1
-      GROUP BY l.last_7_ptyes_sr, l.last_7_pthdfc_sr, l.last_7_ptaxis_sr
+      GROUP BY l.last_7_ptyes_sr, l.last_7_pthdfc_sr, l.last_7_ptaxis_sr, l.last_7_ptsbi_sr
       ;;
   }
 
