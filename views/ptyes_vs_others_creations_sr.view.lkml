@@ -15,121 +15,56 @@ view: ptyes_vs_others_creations_sr {
               AND created_on >= CAST(DATE_ADD('day', -7, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'CREATE'
-              AND SUBSTRING(umn FROM POSITION('@' IN umn) + 1) IN ('ptsbi','ptyes', 'ptaxis', 'pthdfc')
+              AND SUBSTRING(umn FROM POSITION('@' IN umn) + 1) IN ('ptsbi', 'ptyes', 'ptaxis', 'pthdfc')
           GROUP BY 1, 2
       ),
       pivot_data AS (
           -- Pivot to get success rates per handle in separate columns
           SELECT
               txn_date,
-              ROUND(
-                  MAX(CASE WHEN handle = 'ptyes' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END),
-                  2
-              ) AS ptyes_sr,
-              ROUND(
-                  MAX(CASE WHEN handle = 'pthdfc' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END),
-                  2
-              ) AS pthdfc_sr,
-              ROUND(
-                  MAX(CASE WHEN handle = 'ptaxis' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END),
-                  2
-              ) AS ptaxis_sr,
-              ROUND(
-                  MAX(CASE WHEN handle = 'ptsbi' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END),
-                  2
-              ) AS ptsbi_sr
+              ROUND(MAX(CASE WHEN handle = 'ptyes' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END), 2) AS ptyes_sr,
+              ROUND(MAX(CASE WHEN handle = 'pthdfc' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END), 2) AS pthdfc_sr,
+              ROUND(MAX(CASE WHEN handle = 'ptaxis' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END), 2) AS ptaxis_sr,
+              ROUND(MAX(CASE WHEN handle = 'ptsbi' THEN success_txns * 100.0 / NULLIF(total_txns, 0) ELSE NULL END), 2) AS ptsbi_sr
           FROM base_sr
           GROUP BY 1
       ),
       last_7_days_agg AS (
           -- Aggregate success rates over the last 7 days
           SELECT
-              ROUND(SUM(p.ptyes_sr) / COUNT(p.ptyes_sr), 2) AS last_7_ptyes_sr,
-              ROUND(SUM(p.pthdfc_sr) / COUNT(p.pthdfc_sr), 2) AS last_7_pthdfc_sr,
-              ROUND(SUM(p.ptaxis_sr) / COUNT(p.ptaxis_sr), 2) AS last_7_ptaxis_sr,
-              ROUND(SUM(p.ptsbi_sr) / COUNT(p.ptsbi_sr), 2) AS last_7_ptsbi_sr
+              ROUND(AVG(p.ptyes_sr), 2) AS last_7_ptyes_sr,
+              ROUND(AVG(p.pthdfc_sr), 2) AS last_7_pthdfc_sr,
+              ROUND(AVG(p.ptaxis_sr), 2) AS last_7_ptaxis_sr,
+              ROUND(AVG(p.ptsbi_sr), 2) AS last_7_ptsbi_sr
           FROM pivot_data p
       )
       SELECT
-          'SR' AS SR,
-          '%' AS percentage,
-
-      -- D-1 Success Rates
-      CONCAT(
-      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP)
-      THEN p.ptyes_sr - p.ptaxis_sr ELSE NULL END) AS VARCHAR),
-      '%'
-      ) AS "D-1 (ptyes - ptaxis)",
-
-      CONCAT(
-      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP)
-      THEN p.ptyes_sr - p.pthdfc_sr ELSE NULL END) AS VARCHAR),
-      '%'
-      ) AS "D-1 (ptyes - pthdfc)",
-
-      CONCAT(
-      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP)
-      THEN p.ptyes_sr - p.ptsbi_sr ELSE NULL END) AS VARCHAR),
-      '%'
-      ) AS "D-1 (ptyes - ptsbi)",
-
-      -- D-2 Success Rates
-      CONCAT(
-      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP)
-      THEN p.ptyes_sr - p.ptaxis_sr ELSE NULL END) AS VARCHAR),
-      '%'
-      ) AS "D-2 (ptyes - ptaxis)",
-
-      CONCAT(
-      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP)
-      THEN p.ptyes_sr - p.pthdfc_sr ELSE NULL END) AS VARCHAR),
-      '%'
-      ) AS "D-2 (ptyes - pthdfc)",
-
-      CONCAT(
-      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP)
-      THEN p.ptyes_sr - p.ptsbi_sr ELSE NULL END) AS VARCHAR),
-      '%'
-      ) AS "D-2 (ptyes - ptsbi)",
-
-      -- D-3 Success Rates
-      CONCAT(
-      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP)
-      THEN p.ptyes_sr - p.ptaxis_sr ELSE NULL END) AS VARCHAR),
-      '%'
-      ) AS "D-3 (ptyes - ptaxis)",
-
-      CONCAT(
-      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP)
-      THEN p.ptyes_sr - p.pthdfc_sr ELSE NULL END) AS VARCHAR),
-      '%'
-      ) AS "D-3 (ptyes - pthdfc)",
-      CONCAT(
-      CAST(MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP)
-      THEN p.ptyes_sr - p.ptsbi_sr ELSE NULL END) AS VARCHAR),
-      '%'
-      ) AS "D-3 (ptyes - ptsbi)",
-
-      -- Last 7 Days Success Rates
-      CONCAT(
-      CAST((l.last_7_ptyes_sr - l.last_7_ptaxis_sr) AS VARCHAR),
-      '%'
-      ) AS "Last 7 Days (ptyes - ptaxis)",
-
-      CONCAT(
-      CAST((l.last_7_ptyes_sr - l.last_7_pthdfc_sr) AS VARCHAR),
-      '%'
-      ) AS "Last 7 Days (ptyes - pthdfc)",
-
-      CONCAT(
-      CAST((l.last_7_ptyes_sr - l.last_7_ptsbi_sr) AS VARCHAR),
-      '%'
-      ) AS "Last 7 Days (ptyes - ptsbi)"
-
+          'SR' AS Metric,
+          '%' AS Unit,
+          -- Success Rates for D-1
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -1, CURRENT_DATE) THEN p.ptaxis_sr ELSE NULL END) AS VARCHAR), '%') AS "D-1 ptaxis",
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -1, CURRENT_DATE) THEN p.pthdfc_sr ELSE NULL END) AS VARCHAR), '%') AS "D-1 pthdfc",
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -1, CURRENT_DATE) THEN p.ptsbi_sr ELSE NULL END) AS VARCHAR), '%') AS "D-1 ptsbi",
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -1, CURRENT_DATE) THEN p.ptyes_sr ELSE NULL END) AS VARCHAR), '%') AS "D-1 ptyes",
+          -- Success Rates for D-2
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -2, CURRENT_DATE) THEN p.ptaxis_sr ELSE NULL END) AS VARCHAR), '%') AS "D-2 ptaxis",
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -2, CURRENT_DATE) THEN p.pthdfc_sr ELSE NULL END) AS VARCHAR), '%') AS "D-2 pthdfc",
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -2, CURRENT_DATE) THEN p.ptsbi_sr ELSE NULL END) AS VARCHAR), '%') AS "D-2 ptsbi",
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -2, CURRENT_DATE) THEN p.ptyes_sr ELSE NULL END) AS VARCHAR), '%') AS "D-2 ptyes",
+          -- Success Rates for D-3
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -3, CURRENT_DATE) THEN p.ptaxis_sr ELSE NULL END) AS VARCHAR), '%') AS "D-3 ptaxis",
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -3, CURRENT_DATE) THEN p.pthdfc_sr ELSE NULL END) AS VARCHAR), '%') AS "D-3 pthdfc",
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -3, CURRENT_DATE) THEN p.ptsbi_sr ELSE NULL END) AS VARCHAR), '%') AS "D-3 ptsbi",
+          CONCAT(CAST(MAX(CASE WHEN p.txn_date = DATE_ADD('day', -3, CURRENT_DATE) THEN p.ptyes_sr ELSE NULL END) AS VARCHAR), '%') AS "D-3 ptyes",
+          -- Last 7 Days Success Rates
+          CONCAT(CAST(l.last_7_ptaxis_sr AS VARCHAR), '%') AS "Last 7 Days ptaxis",
+          CONCAT(CAST(l.last_7_pthdfc_sr AS VARCHAR), '%') AS "Last 7 Days pthdfc",
+          CONCAT(CAST(l.last_7_ptsbi_sr AS VARCHAR), '%') AS "Last 7 Days ptsbi",
+          CONCAT(CAST(l.last_7_ptyes_sr AS VARCHAR), '%') AS "Last 7 Days ptyes"
       FROM pivot_data p
       LEFT JOIN last_7_days_agg l ON 1=1
       GROUP BY l.last_7_ptyes_sr, l.last_7_pthdfc_sr, l.last_7_ptaxis_sr, l.last_7_ptsbi_sr
-      ;;
+       ;;
   }
 
   suggestions: no
@@ -139,76 +74,132 @@ view: ptyes_vs_others_creations_sr {
     drill_fields: [detail*]
   }
 
-  dimension: sr {
+  dimension: metric {
     type: string
-    sql: ${TABLE}.SR ;;
+    sql: ${TABLE}.Metric ;;
   }
 
-  dimension: percentage {
+  dimension: unit {
     type: string
-    sql: ${TABLE}.percentage ;;
+    sql: ${TABLE}.Unit ;;
   }
 
-  dimension: d1_ptyes__ptaxis {
+  dimension: d1_ptaxis {
     type: string
-    label: "D-1 (ptyes - ptaxis)"
-    sql: ${TABLE}."D-1 (ptyes - ptaxis)" ;;
+    label: "D-1 ptaxis"
+    sql: ${TABLE}."D-1 ptaxis" ;;
   }
 
-  dimension: d1_ptyes__pthdfc {
+  dimension: d1_pthdfc {
     type: string
-    label: "D-1 (ptyes - pthdfc)"
-    sql: ${TABLE}."D-1 (ptyes - pthdfc)" ;;
+    label: "D-1 pthdfc"
+    sql: ${TABLE}."D-1 pthdfc" ;;
   }
 
-  dimension: d2_ptyes__ptaxis {
+  dimension: d1_ptsbi {
     type: string
-    label: "D-2 (ptyes - ptaxis)"
-    sql: ${TABLE}."D-2 (ptyes - ptaxis)" ;;
+    label: "D-1 ptsbi"
+    sql: ${TABLE}."D-1 ptsbi" ;;
   }
 
-  dimension: d2_ptyes__pthdfc {
+  dimension: d1_ptyes {
     type: string
-    label: "D-2 (ptyes - pthdfc)"
-    sql: ${TABLE}."D-2 (ptyes - pthdfc)" ;;
+    label: "D-1 ptyes"
+    sql: ${TABLE}."D-1 ptyes" ;;
   }
 
-  dimension: d3_ptyes__ptaxis {
+  dimension: d2_ptaxis {
     type: string
-    label: "D-3 (ptyes - ptaxis)"
-    sql: ${TABLE}."D-3 (ptyes - ptaxis)" ;;
+    label: "D-2 ptaxis"
+    sql: ${TABLE}."D-2 ptaxis" ;;
   }
 
-  dimension: d3_ptyes__pthdfc {
+  dimension: d2_pthdfc {
     type: string
-    label: "D-3 (ptyes - pthdfc)"
-    sql: ${TABLE}."D-3 (ptyes - pthdfc)" ;;
+    label: "D-2 pthdfc"
+    sql: ${TABLE}."D-2 pthdfc" ;;
   }
 
-  dimension: last_7_days_ptyes__ptaxis {
+  dimension: d2_ptsbi {
     type: string
-    label: "Last 7 Days (ptyes - ptaxis)"
-    sql: ${TABLE}."Last 7 Days (ptyes - ptaxis)" ;;
+    label: "D-2 ptsbi"
+    sql: ${TABLE}."D-2 ptsbi" ;;
   }
 
-  dimension: last_7_days_ptyes__pthdfc {
+  dimension: d2_ptyes {
     type: string
-    label: "Last 7 Days (ptyes - pthdfc)"
-    sql: ${TABLE}."Last 7 Days (ptyes - pthdfc)" ;;
+    label: "D-2 ptyes"
+    sql: ${TABLE}."D-2 ptyes" ;;
+  }
+
+  dimension: d3_ptaxis {
+    type: string
+    label: "D-3 ptaxis"
+    sql: ${TABLE}."D-3 ptaxis" ;;
+  }
+
+  dimension: d3_pthdfc {
+    type: string
+    label: "D-3 pthdfc"
+    sql: ${TABLE}."D-3 pthdfc" ;;
+  }
+
+  dimension: d3_ptsbi {
+    type: string
+    label: "D-3 ptsbi"
+    sql: ${TABLE}."D-3 ptsbi" ;;
+  }
+
+  dimension: d3_ptyes {
+    type: string
+    label: "D-3 ptyes"
+    sql: ${TABLE}."D-3 ptyes" ;;
+  }
+
+  dimension: last_7_days_ptaxis {
+    type: string
+    label: "Last 7 Days ptaxis"
+    sql: ${TABLE}."Last 7 Days ptaxis" ;;
+  }
+
+  dimension: last_7_days_pthdfc {
+    type: string
+    label: "Last 7 Days pthdfc"
+    sql: ${TABLE}."Last 7 Days pthdfc" ;;
+  }
+
+  dimension: last_7_days_ptsbi {
+    type: string
+    label: "Last 7 Days ptsbi"
+    sql: ${TABLE}."Last 7 Days ptsbi" ;;
+  }
+
+  dimension: last_7_days_ptyes {
+    type: string
+    label: "Last 7 Days ptyes"
+    sql: ${TABLE}."Last 7 Days ptyes" ;;
   }
 
   set: detail {
     fields: [
-      sr,
-      percentage,
-      d1_ptyes__ptaxis,
-      d1_ptyes__pthdfc,
-      d2_ptyes__ptaxis,
-      d2_ptyes__pthdfc,
-      d3_ptyes__ptaxis,
-      d3_ptyes__pthdfc,
-      last_7_days_ptyes__ptaxis,
-      last_7_days_ptyes__pthdfc
+      metric,
+      unit,
+      d1_ptaxis,
+      d1_pthdfc,
+      d1_ptsbi,
+      d1_ptyes,
+      d2_ptaxis,
+      d2_pthdfc,
+      d2_ptsbi,
+      d2_ptyes,
+      d3_ptaxis,
+      d3_pthdfc,
+      d3_ptsbi,
+      d3_ptyes,
+      last_7_days_ptaxis,
+      last_7_days_pthdfc,
+      last_7_days_ptsbi,
+      last_7_days_ptyes
     ]
   }
 }
