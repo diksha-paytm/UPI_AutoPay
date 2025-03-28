@@ -21,6 +21,7 @@ view: cc_1st_exec_payee_vpa_name_success {
               ON ti.txn_id = tp.txn_id
           WHERE
               ti.business_type = 'MANDATE'
+              AND tp.account_type = 'CREDIT'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
               AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
               AND tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
@@ -47,6 +48,7 @@ view: cc_1st_exec_payee_vpa_name_success {
       ON tp.vpa = lp.payee_vpa AND tp.name = lp.payee_name
       WHERE
       ti.business_type = 'MANDATE'
+              AND tp.account_type = 'CREDIT'
       AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
       AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
       AND tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
