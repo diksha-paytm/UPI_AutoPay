@@ -1,4 +1,4 @@
-view: cc_recurring_exec_payee_vpa_success {
+view: cc_recurring_exec_payee_wise_success {
   derived_table: {
     sql: WITH all_payees AS (
           -- Get all distinct payee VPAs and names from successful transactions
@@ -87,12 +87,12 @@ view: cc_recurring_exec_payee_vpa_success {
     sql: ${TABLE}.payee_name ;;
   }
 
-  dimension: successful_mandates {
+  dimension: count_ {
     type: number
-    sql: ${TABLE}.successful_mandates ;;
+    sql: ${TABLE}."count" ;;
   }
 
   set: detail {
-    fields: [created_date, payee_vpa, payee_name, successful_mandates]
+    fields: [created_date, payee_vpa, payee_name, count_]
   }
 }
