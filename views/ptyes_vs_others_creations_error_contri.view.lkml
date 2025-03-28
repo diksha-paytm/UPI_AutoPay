@@ -17,7 +17,7 @@ view: ptyes_vs_others_creations_error_contri {
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'CREATE'
               AND status = 'FAILURE'
-              AND SUBSTRING(umn FROM POSITION('@' IN umn) + 1) IN ('ptyes', 'pthdfc', 'ptaxis')
+              AND SUBSTRING(umn FROM POSITION('@' IN umn) + 1) IN ('ptsbi','ptyes', 'pthdfc', 'ptaxis')
           GROUP BY 1, 2, 3, 4
       ),
       total_data AS (
@@ -59,7 +59,8 @@ view: ptyes_vs_others_creations_error_contri {
               txn_date,
               MAX(CASE WHEN handle = 'ptyes' THEN failure_rate ELSE NULL END) AS ptyes_failure_rate,
               MAX(CASE WHEN handle = 'pthdfc' THEN failure_rate ELSE NULL END) AS pthdfc_failure_rate,
-              MAX(CASE WHEN handle = 'ptaxis' THEN failure_rate ELSE NULL END) AS ptaxis_failure_rate
+              MAX(CASE WHEN handle = 'ptaxis' THEN failure_rate ELSE NULL END) AS ptaxis_failure_rate,
+              MAX(CASE WHEN handle = 'ptsbi' THEN failure_rate ELSE NULL END) AS ptsbi_failure_rate
           FROM failure_rates
           GROUP BY 1, 2, 3
       ),
@@ -73,7 +74,9 @@ view: ptyes_vs_others_creations_error_contri {
               SUM(CASE WHEN handle = 'pthdfc' THEN failures ELSE 0 END) AS pthdfc_failures,
               SUM(CASE WHEN handle = 'pthdfc' THEN total_txns ELSE 0 END) AS pthdfc_total_txns,
               SUM(CASE WHEN handle = 'ptaxis' THEN failures ELSE 0 END) AS ptaxis_failures,
-              SUM(CASE WHEN handle = 'ptaxis' THEN total_txns ELSE 0 END) AS ptaxis_total_txns
+              SUM(CASE WHEN handle = 'ptaxis' THEN total_txns ELSE 0 END) AS ptaxis_total_txns,
+              SUM(CASE WHEN handle = 'ptsbi' THEN failures ELSE 0 END) AS ptsbi_failures,
+              SUM(CASE WHEN handle = 'ptsbi' THEN total_txns ELSE 0 END) AS ptsbi_total_txns
           FROM failure_rates
           WHERE txn_date >= CAST(DATE_ADD('day', -7, CURRENT_DATE) AS TIMESTAMP)
           and txn_date < CAST(CURRENT_DATE AS TIMESTAMP)
@@ -95,6 +98,11 @@ view: ptyes_vs_others_creations_error_contri {
       THEN ptyes_failure_rate - ptaxis_failure_rate ELSE NULL END)
       AS VARCHAR) || '%' AS "D-1 ptyes vs ptaxis",
 
+      CAST(MAX(CASE WHEN p.txn_date >= CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP)
+      and p.txn_date < CAST(CURRENT_DATE AS TIMESTAMP)
+      THEN ptyes_failure_rate - ptsbi_failure_rate ELSE NULL END)
+      AS VARCHAR) || '%' AS "D-1 ptyes vs ptsbi",
+
       -- D-2 Differences
       CAST(MAX(CASE WHEN p.txn_date >= CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP)
       and p.txn_date < CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP)
@@ -105,6 +113,11 @@ view: ptyes_vs_others_creations_error_contri {
       and p.txn_date < CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP)
       THEN ptyes_failure_rate - ptaxis_failure_rate ELSE NULL END)
       AS VARCHAR) || '%' AS "D-2 ptyes vs ptaxis",
+
+      CAST(MAX(CASE WHEN p.txn_date >= CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP)
+      and p.txn_date < CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP)
+      THEN ptyes_failure_rate - ptsbi_failure_rate ELSE NULL END)
+      AS VARCHAR) || '%' AS "D-2 ptyes vs ptsbi",
 
       -- D-3 Differences
       CAST(MAX(CASE WHEN p.txn_date >= CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP)
@@ -117,6 +130,11 @@ view: ptyes_vs_others_creations_error_contri {
       THEN ptyes_failure_rate - ptaxis_failure_rate ELSE NULL END)
       AS VARCHAR) || '%' AS "D-3 ptyes vs ptaxis",
 
+      CAST(MAX(CASE WHEN p.txn_date >= CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP)
+      and p.txn_date < CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP)
+      THEN ptyes_failure_rate - ptsbi_failure_rate ELSE NULL END)
+      AS VARCHAR) || '%' AS "D-3 ptyes vs ptsbi",
+
       -- Last 7 Days Differences (SUM of last 7 days)
       CAST(ROUND(
       (l.ptyes_failures * 100.0 / NULLIF(l.ptyes_total_txns, 0)) -
@@ -128,20 +146,29 @@ view: ptyes_vs_others_creations_error_contri {
       (l.ptyes_failures * 100.0 / NULLIF(l.ptyes_total_txns, 0)) -
       (l.ptaxis_failures * 100.0 / NULLIF(l.ptaxis_total_txns, 0)),
       2
-      ) AS VARCHAR) || '%' AS "Last 7 Days ptyes vs ptaxis"
+      ) AS VARCHAR) || '%' AS "Last 7 Days ptyes vs ptaxis",
+
+      CAST(ROUND(
+      (l.ptyes_failures * 100.0 / NULLIF(l.ptyes_total_txns, 0)) -
+      (l.ptsbi_failures * 100.0 / NULLIF(l.ptsbi_total_txns, 0)),
+      2
+      ) AS VARCHAR) || '%' AS "Last 7 Days ptyes vs ptsbi"
 
       FROM pivot_data p
       LEFT JOIN last_7_days_agg l
       ON p.npci_resp_code = l.npci_resp_code
       AND p.app_resp_code = l.app_resp_code
-      GROUP BY 1, 2, l.ptyes_failures, l.ptyes_total_txns, l.pthdfc_failures, l.pthdfc_total_txns, l.ptaxis_failures, l.ptaxis_total_txns
+      GROUP BY 1, 2, l.ptyes_failures, l.ptyes_total_txns, l.pthdfc_failures, l.pthdfc_total_txns, l.ptaxis_failures, l.ptaxis_total_txns, l.ptsbi_failures, l.ptsbi_total_txns
       HAVING
       MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP) THEN ptyes_failure_rate - pthdfc_failure_rate ELSE NULL END) IS NOT NULL
       OR MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP) THEN ptyes_failure_rate - ptaxis_failure_rate ELSE NULL END) IS NOT NULL
+      OR MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -1, CURRENT_DATE) AS TIMESTAMP) THEN ptyes_failure_rate - ptsbi_failure_rate ELSE NULL END) IS NOT NULL
       OR MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP) THEN ptyes_failure_rate - pthdfc_failure_rate ELSE NULL END) IS NOT NULL
       OR MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP) THEN ptyes_failure_rate - ptaxis_failure_rate ELSE NULL END) IS NOT NULL
+      OR MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -2, CURRENT_DATE) AS TIMESTAMP) THEN ptyes_failure_rate - ptsbi_failure_rate ELSE NULL END) IS NOT NULL
       OR MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP) THEN ptyes_failure_rate - pthdfc_failure_rate ELSE NULL END) IS NOT NULL
       OR MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP) THEN ptyes_failure_rate - ptaxis_failure_rate ELSE NULL END) IS NOT NULL
+      OR MAX(CASE WHEN p.txn_date = CAST(DATE_ADD('day', -3, CURRENT_DATE) AS TIMESTAMP) THEN ptyes_failure_rate - ptsbi_failure_rate ELSE NULL END) IS NOT NULL
       OR CAST(ROUND(
       (l.ptyes_failures * 100.0 / NULLIF(l.ptyes_total_txns, 0)) -
       (l.pthdfc_failures * 100.0 / NULLIF(l.pthdfc_total_txns, 0)),
@@ -150,6 +177,11 @@ view: ptyes_vs_others_creations_error_contri {
       OR CAST(ROUND(
       (l.ptyes_failures * 100.0 / NULLIF(l.ptyes_total_txns, 0)) -
       (l.ptaxis_failures * 100.0 / NULLIF(l.ptaxis_total_txns, 0)),
+      2
+      ) AS DECIMAL(10,1)) IS NOT NULL
+      OR CAST(ROUND(
+      (l.ptyes_failures * 100.0 / NULLIF(l.ptyes_total_txns, 0)) -
+      (l.ptsbi_failures * 100.0 / NULLIF(l.ptsbi_total_txns, 0)),
       2
       ) AS DECIMAL(10,1)) IS NOT NULL
 
