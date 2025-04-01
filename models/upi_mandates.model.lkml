@@ -19,7 +19,7 @@ explore: revokes_user_handle_count {}
 explore: pdn_revokes_exec_failure {}
 explore: overall_revoke_error_count {}
 explore: sbmd_recurring_exec_error_count {}
-explore: pdn_revokes_exec_success {}
+explore: pdn_revoke_exec_success{}
 explore: ipo_exec_failure {}
 explore: pdn_user_count {}
 explore: sbmd_1st_exec_error_count {}
