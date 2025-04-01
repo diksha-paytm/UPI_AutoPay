@@ -1,11 +1,11 @@
 view: revoke_ptaxis_error_count {
   derived_table: {
-    sql: WITH final_status AS (
+    sql:WITH final_status AS (
           SELECT
               DATE(ti.created_on) AS created_date,
               COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
-              Ctxn_id AS combi,
-              MAX(ti.status) AS final_status
+              txn_id AS combi,
+              MAX_BY(ti.status, ti.created_on) AS final_status
           FROM hive.switch.txn_info_snapshot_v3 ti
           WHERE
               ti.business_type = 'MANDATE'

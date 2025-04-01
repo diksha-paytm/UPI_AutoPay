@@ -28,6 +28,7 @@ view: payer_revoke_sr {
       )SELECT
           created_date,
           -- Convert to VARCHAR with '%' in final select
+          CONCAT(CAST(MAX(CASE WHEN handle = 'paytm' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "paytm SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptaxis' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptaxis SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'pthdfc' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "pthdfc SR",
           CONCAT(CAST(MAX(CASE WHEN handle = 'ptsbi' THEN sr ELSE NULL END) AS VARCHAR), '%') AS "ptsbi SR",

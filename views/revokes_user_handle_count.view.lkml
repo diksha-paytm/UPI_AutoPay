@@ -5,15 +5,17 @@ view: revokes_user_handle_count {
           SELECT
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
-                  tp.scope_cust_id AS combi,
-              MAX(ti.status) AS final_status  -- Pick the highest status per Execution Number
+              tp.scope_cust_id AS combi,
+             MAX_BY(ti.status, ti.created_on) AS final_status  -- Pick the highest status per Execution Number
           FROM hive.switch.txn_info_snapshot_v3 ti
           JOIN hive.switch.txn_participants_snapshot_v3 tp
               ON ti.txn_id = tp.txn_id
           WHERE
               ti.business_type = 'MANDATE'
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
+              AND first_phase = 'ReqMandate-PAYER'
               AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
+              AND tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
               AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND ti.type = 'REVOKE'
@@ -47,8 +49,8 @@ view: revokes_user_handle_count {
       MAX(CASE WHEN handle = 'ptyes' AND final_status = 'FAILURE' THEN status_count ELSE NULL END) AS "ptyes Failure",
 
       -- Total Success & Failure Counts
-      (COALESCE(MAX(CASE WHEN final_status = 'SUCCESS' THEN status_count ELSE NULL END), 0)) AS "Total Success",
-      (COALESCE(MAX(CASE WHEN final_status = 'FAILURE' THEN status_count ELSE NULL END), 0)) AS "Total Failure"
+      (COALESCE(SUM(CASE WHEN final_status = 'SUCCESS' THEN status_count ELSE NULL END), 0)) AS "Total Success",
+      (COALESCE(SUM(CASE WHEN final_status = 'FAILURE' THEN status_count ELSE NULL END), 0)) AS "Total Failure"
       FROM status_counts sc
       GROUP BY sc.created_date
       ORDER BY sc.created_date DESC

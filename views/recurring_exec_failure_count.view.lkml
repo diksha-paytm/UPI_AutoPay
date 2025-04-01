@@ -7,8 +7,7 @@ view: recurring_exec_failure_count {
         CONCAT(
             ti.umn,
             REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '')
-        ) AS unique_txn,
-        MAX(ti.status) AS final_status
+        ) AS unique_txn
     FROM hive.switch.txn_info_snapshot_v3 ti
     WHERE
         ti.business_type = 'MANDATE'
@@ -19,14 +18,14 @@ view: recurring_exec_failure_count {
         AND ti.type = 'COLLECT'
         AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
     GROUP BY 1, 2
-    HAVING max(status) = 'FAILURE' -- Ensure final status for that date is FAILURE
+    HAVING MAX_BY(ti.status, ti.created_on) = 'FAILURE' -- Ensure final status for that date is FAILURE
 ),
 handle_data AS (
     -- Count only those failures where final status = 'FAILURE' (date-wise)
     SELECT
         DATE(ti.created_on) AS created_date,
         SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
-        COUNT(DISTINCT ti.umn) AS failure
+        COUNT(DISTINCT fs.unique_txn) AS failure
     FROM hive.switch.txn_info_snapshot_v3 ti
     JOIN final_status fs
         ON CONCAT(
@@ -35,14 +34,7 @@ handle_data AS (
         ) = fs.unique_txn
         AND DATE(ti.created_on) = fs.created_date -- Ensure final status check is per date
     WHERE
-        ti.business_type = 'MANDATE'
-        AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-        AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-        AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-        AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-        AND ti.type = 'COLLECT'
-        AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
-        AND ti.status = 'FAILURE' -- Count only actual failure transactions
+         ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
     GROUP BY 1, 2
 ),
 pivoted_data AS (
@@ -69,7 +61,6 @@ SELECT
 FROM pivoted_data
 GROUP BY created_date
 ORDER BY created_date DESC
-
       ;;
   }
 
