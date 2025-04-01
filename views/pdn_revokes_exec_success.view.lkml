@@ -52,7 +52,7 @@ SELECT
     COUNT(DISTINCT txn_id) AS total -- ✅ Total revoked UMNs across all handles
 FROM revoke_check
 GROUP BY fn_date
-ORDER BY fn_date DESC;
+ORDER BY fn_date DESC
 
  ;;
   }
