@@ -16,7 +16,7 @@ explore: sbmd_recurring_exec_count {}
 explore: sbmd_revoke_count {}
 explore: recurring_exec_sr {}
 explore: revokes_user_handle_count {}
-explore: pdn_revokes_exec_failure {}
+explore: pdn_revoke_exec_failure {}
 explore: overall_revoke_error_count {}
 explore: sbmd_recurring_exec_error_count {}
 explore: pdn_revoke_exec_success{}
