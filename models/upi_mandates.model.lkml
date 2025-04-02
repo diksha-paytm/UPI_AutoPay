@@ -11,6 +11,7 @@ explore: cc_1st_exec_count {}
 explore: ptyes_vs_others_creations_error_contri {}
 explore: cc_recurring_exec_payee_wise_failure {}
 explore: sbmd_revoke_error_count {}
+explore: revoke_count {}
 explore: cc_1st_exec_payee_wise_success {}
 explore: sbmd_recurring_exec_count {}
 explore: sbmd_revoke_count {}
