@@ -39,6 +39,8 @@ view: sbmd_datadump {
                 ON ti.txn_id = tp1.txn_id
       where
         ti.business_type = 'MANDATE'
+        and tp.participant_type='PAYER'
+        and tp1.participant_type='PAYEE'
         and json_query(ti.extended_info, 'strict$.purpose') = '"76"'
         AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
         AND tp.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
