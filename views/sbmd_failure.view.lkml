@@ -26,7 +26,7 @@ view: sbmd_failure {
               AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"76"'
               AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
         AND tp.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
-        AND t1.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+        AND tp1.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
         AND ti.created_on >= CAST(DATE_ADD('day', -30,CURRENT_DATE) AS TIMESTAMP)
         AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
        AND tp.participant_type = 'PAYER'
