@@ -24,7 +24,7 @@ view: sbmd_recurring_exec_error_count {
               AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
               AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'COLLECT'
+              AND ti.type ='COLLECT'
               AND ti.status = 'FAILURE'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
           GROUP BY 1, 2
