@@ -13,7 +13,7 @@ view: sbmd_datadump {
                 JSON_QUERY(ti.extended_info, 'strict $.initiationMode'),
                 '"',
                 ''
-              ) AS initiation_mode,
+            ) AS initiation_mode,
         ti.npci_resp_code,
               tp.name AS payer_name,
               tp1.name AS payee_name,
