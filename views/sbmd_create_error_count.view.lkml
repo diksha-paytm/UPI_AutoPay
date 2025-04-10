@@ -10,8 +10,7 @@ view: sbmd_create_error_count {
               ON ti.txn_id = tp.txn_id
           WHERE
               ti.business_type = 'MANDATE'
-              AND tp.account_type = 'CREDIT'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
+              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"76"'
               AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
               AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
               AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)

@@ -40,11 +40,12 @@ view: sbmd_datadump {
       where
         ti.business_type = 'MANDATE'
         and json_query(ti.extended_info, 'strict$.purpose') = '"76"'
-        and ti.dl_last_updated > date('2024-12-01')
-        and tp.dl_last_updated > date('2024-12-01')
-        and tp1.dl_last_updated > date('2024-12-01')
-        and ti.created_on >= cast('2025-01-25 00:00:00.000' as timestamp)
-        --and ti.status in ('FAILURE','SUCCESS')
+        AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+        AND tp.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+        AND t1.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+        AND ti.created_on >= CAST(DATE_ADD('day', -30,CURRENT_DATE) AS TIMESTAMP)
+        AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
+       --and ti.status in ('FAILURE','SUCCESS')
       order by
         1 desc
  ;;

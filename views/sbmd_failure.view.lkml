@@ -23,16 +23,15 @@ view: sbmd_failure {
                   ON ti.txn_id = tp1.txn_id
           WHERE
               ti.business_type = 'MANDATE'
-              AND tp.account_type = 'CREDIT'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -100, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp1.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp.participant_type = 'PAYER'
+              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"76"'
+              AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+        AND tp.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+        AND t1.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
+        AND ti.created_on >= CAST(DATE_ADD('day', -30,CURRENT_DATE) AS TIMESTAMP)
+        AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
+       AND tp.participant_type = 'PAYER'
               AND tp1.participant_type = 'PAYEE'
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
-      ),
+            ),
       aggregated_data AS (
           SELECT
               created_date,
