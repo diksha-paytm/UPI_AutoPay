@@ -34,7 +34,7 @@ view: sbmd_1st_exec_error_count {
           SELECT created_date
           FROM failures
           ORDER BY created_date DESC
-          LIMIT 10
+          LIMIT 1
       ),
       top_10_codes AS (
           -- Find the top 5 failure response codes for Paytm on the latest day

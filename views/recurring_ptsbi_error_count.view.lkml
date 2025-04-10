@@ -10,8 +10,7 @@ view: recurring_ptsbi_error_count {
                       JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
                       '"', ''
                   )
-              ) AS combi,
-              MAX(ti.status) AS final_status
+              ) AS combi
           FROM hive.switch.txn_info_snapshot_v3 ti
           WHERE
               ti.business_type = 'MANDATE'
@@ -23,6 +22,7 @@ view: recurring_ptsbi_error_count {
               AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'ptsbi'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
           GROUP BY 1, 2, 3
+           HAVING MAX_BY(ti.status, ti.created_on) = 'FAILURE'
       ),
       failure_data AS (
           -- Count only those where the final status = 'FAILURE'
@@ -31,7 +31,6 @@ view: recurring_ptsbi_error_count {
               fs.npci_resp_code,
               COUNT(DISTINCT fs.combi) AS failure_count
           FROM final_status fs
-          WHERE fs.final_status = 'FAILURE'
           GROUP BY 1, 2
       ),
       latest_failures AS (
