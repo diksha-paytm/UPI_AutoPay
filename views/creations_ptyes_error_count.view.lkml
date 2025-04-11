@@ -1,22 +1,27 @@
 view: creations_ptyes_error_count {
   derived_table: {
-    sql: WITH ptyes_failures AS (
-          SELECT
-              DATE(ti.created_on) AS created_date,
-             COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
-              COUNT(DISTINCT ti.umn) AS failure
-          FROM hive.switch.txn_info_snapshot_v3 ti
-          WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'CREATE'
-              AND ti.status = 'FAILURE'
-              AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'ptyes'
-          GROUP BY 1, 2
-      ),
+    sql:WITH ptyes_failures AS (
+    SELECT
+        DATE(ti.created_on) AS created_date,
+        -- Replace 'MD00' with 'ZA' before grouping
+        COALESCE(NULLIF(CASE
+            WHEN ti.npci_resp_code = 'MD00' THEN 'ZA'
+            ELSE ti.npci_resp_code
+        END, ''), 'NULL') AS npci_resp_code,
+        COUNT(DISTINCT ti.umn) AS failure
+    FROM hive.switch.txn_info_snapshot_v3 ti
+    WHERE
+        ti.business_type = 'MANDATE'
+        AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
+        AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
+        AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
+        AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
+        AND ti.type = 'CREATE'
+        AND ti.status = 'FAILURE'
+        AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'ptyes'
+    GROUP BY 1, 2
+),
+
       latest_failures AS (
           -- Identify the latest day's failure data
           SELECT created_date
