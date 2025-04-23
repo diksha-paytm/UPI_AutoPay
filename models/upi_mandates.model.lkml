@@ -4,6 +4,7 @@ include: "/views/**/*.view"
 explore: overall_count {}
 explore: ptyes_vs_others_creations_sr {}
 explore: 1st_exec_user_count {}
+explore: revokes_error_code_all_handles {}
 explore: pdn_revoke_exec_success{}
 explore: pdn_revoke_exec_failure {}
 explore: creations_error_code_all_handles {}
