@@ -9,14 +9,9 @@ view: creations_count_handles_and_mode {
                                   AND LOWER(SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1)) IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes')
                                   THEN ti.umn ELSE NULL END) AS success,
               COUNT(DISTINCT CASE WHEN ti.status = 'FAILURE' THEN ti.umn ELSE NULL END) AS failure
-          FROM hive.switch.txn_info_snapshot_v3 ti
+          FROM hive.team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'CREATE'
+               ti.type = 'CREATE'
               AND ti.status IN ('FAILURE', 'SUCCESS')
           GROUP BY 1, 2, 3
       ),
