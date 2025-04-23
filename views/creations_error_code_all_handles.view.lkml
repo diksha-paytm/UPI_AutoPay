@@ -9,14 +9,9 @@ view: creations_error_code_all_handles {
                   ELSE ti.npci_resp_code
               END, ''), 'NULL') AS npci_resp_code,
               COUNT(DISTINCT ti.umn) AS failure
-          FROM hive.switch.txn_info_snapshot_v3 ti
+          FROM hive.team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'CREATE'
+               ti.type = 'CREATE'
               AND ti.status = 'FAILURE'
           GROUP BY 1, 2
       ),
@@ -54,7 +49,7 @@ view: creations_error_code_all_handles {
             JOIN daily_total_failures dtf
                 ON pf.created_date = dtf.created_date
             ORDER BY pf.created_date DESC, pf.failure DESC
-       ;;
+ ;;
   }
 
   suggestions: no
