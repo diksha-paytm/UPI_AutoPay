@@ -23,7 +23,6 @@ view: cc_1st_exec_payee_wise_success {
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
               AND ti.status = 'SUCCESS'
               AND tp1.participant_type = 'PAYEE'
-              AND tp.participant_type = 'PAYER'
 
       ),
 
@@ -54,7 +53,6 @@ view: cc_1st_exec_payee_wise_success {
       AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
       AND ti.status = 'SUCCESS'
       AND tp1.participant_type = 'PAYEE'
-      AND tp.participant_type = 'PAYER'
       GROUP BY 1,2,3
       )
 
