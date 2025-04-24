@@ -1,4 +1,4 @@
-view: payee_revoke_count {
+view: revoke_count_payee {
   derived_table: {
     sql: WITH handle_data AS (
           SELECT
@@ -11,16 +11,10 @@ view: payee_revoke_count {
                   END
               ) AS success
           FROM
-              hive.switch.txn_info_snapshot_v3 ti
+              team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND first_phase = 'REQMANDATECONFIRMATION-REVOKE'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
+              first_phase = 'REQMANDATECONFIRMATION-REVOKE'
               AND ti.type = 'REVOKE'
-              AND ti.status IN ( 'SUCCESS')
           GROUP BY
               DATE(ti.created_on),
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1)
