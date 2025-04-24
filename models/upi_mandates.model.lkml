@@ -1,7 +1,6 @@
 # Define the database connection to be used for this model.
 connection: "starburst_connection"
 include: "/views/**/*.view"
-explore: overall_count {}
 explore: ptyes_vs_others_creations_sr {}
 explore: 1st_exec_user_count {}
 explore: revoke_overall_error_count {}
@@ -11,7 +10,6 @@ explore: creations_error_code_all_handles {}
 explore: ptyes_vs_others_creations_sr_delta {}
 explore: cc_recurring_exec_payee_wise_success {}
 explore: 1st_exec_error_code_all_handles {}
-explore: overall_1st_exec_error_count {}
 explore: cc_1st_exec_count {}
 explore: recurring_exec_error_count_all_handles {}
 explore: ptyes_vs_others_creations_error_contri {}
@@ -23,7 +21,6 @@ explore: sbmd_recurring_exec_count {}
 explore: sbmd_revoke_count {}
 explore: recurring_exec_sr {}
 explore: revoke_user_count {}
-explore: overall_revoke_error_count {}
 explore: sbmd_recurring_exec_error_count {}
 explore: ipo_exec_failure {}
 explore: pdn_user_count {}
@@ -42,9 +39,7 @@ explore: cc_recurring_exec_count {}
 explore: ipo_create_success {}
 explore: cc_1st_exec_error_contri {}
 explore: sbmd_failure {}
-explore: overall_create_error_count {}
 explore: sbmd_create_error_count {}
-explore: overall_recurring_error_count {}
 explore: cc_revoke_error_count {}
 explore: cc_1st_exec_error_count{}
 explore: revoke_ptsbi_error_count {}
@@ -70,7 +65,6 @@ explore: recurring_user_sr {}
 explore: creations_ptsbi_error_count {}
 explore: 1st_exec_user_sr {}
 explore: creations_paytm_error_count {}
-explore: overall_sr {}
 explore: creations_pthdfc_error_count {}
 explore: creations_handle_count {}
 explore: 1st_exec_failure_count {}
