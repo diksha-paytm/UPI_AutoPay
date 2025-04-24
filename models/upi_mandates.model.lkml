@@ -74,6 +74,7 @@ explore: overall_sr {}
 explore: creations_pthdfc_error_count {}
 explore: creations_handle_count {}
 explore: 1st_exec_failure_count {}
+explore: revoke_user_sr {}
 explore: creations_handle_user_sr {}
 explore: creations_handle_sr {}
 explore: creations_handle_user_count {}
