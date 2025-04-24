@@ -22,7 +22,7 @@ explore: cc_1st_exec_payee_wise_success {}
 explore: sbmd_recurring_exec_count {}
 explore: sbmd_revoke_count {}
 explore: recurring_exec_sr {}
-explore: revokes_user_handle_count {}
+explore: revoke_user_count {}
 explore: overall_revoke_error_count {}
 explore: sbmd_recurring_exec_error_count {}
 explore: ipo_exec_failure {}

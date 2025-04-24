@@ -1,24 +1,17 @@
-view: revokes_user_handle_count {
+view: revoke_user_count {
   derived_table: {
-    sql:  WITH final_status AS (
+    sql: WITH final_status AS (
           -- Select the max status per (scopeCustId, Execution Number, Date)
           SELECT
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
               tp.scope_cust_id AS combi,
              MAX_BY(ti.status, ti.created_on) AS final_status  -- Pick the highest status per Execution Number
-          FROM hive.switch.txn_info_snapshot_v3 ti
-          JOIN hive.switch.txn_participants_snapshot_v3 tp
+          FROM team_product.looker_RM ti
+          JOIN team_product.looker_txn_parti_RM tp
               ON ti.txn_id = tp.txn_id
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND first_phase = 'ReqMandate-PAYER'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'REVOKE'
+              ti.type = 'REVOKE'
           GROUP BY 1, 2, 3
       ),
       status_counts AS (
@@ -129,16 +122,16 @@ view: revokes_user_handle_count {
     sql: ${TABLE}."ptyes Failure" ;;
   }
 
-  dimension: total_success_users {
+  dimension: total_success {
     type: number
-    label: "Total Success Users"
-    sql: ${TABLE}."Total Success Users" ;;
+    label: "Total Success"
+    sql: ${TABLE}."Total Success" ;;
   }
 
-  dimension: total_failure_users {
+  dimension: total_failure {
     type: number
-    label: "Total Failure Users"
-    sql: ${TABLE}."Total Failure Users" ;;
+    label: "Total Failure"
+    sql: ${TABLE}."Total Failure" ;;
   }
 
   set: detail {
@@ -154,8 +147,8 @@ view: revokes_user_handle_count {
       pthdfc_failure,
       ptsbi_failure,
       ptyes_failure,
-      total_success_users,
-      total_failure_users
+      total_success,
+      total_failure
     ]
   }
 }
