@@ -1,4 +1,4 @@
-view: payer_revoke_count {
+view: revoke_count_payer {
   derived_table: {
     sql: WITH final_status AS (
           -- Select the max status per (scopeCustId, Execution Number, Date)
@@ -7,15 +7,10 @@ view: payer_revoke_count {
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
               ti.txn_id AS combi,
              MAX_BY(ti.status, ti.created_on) AS final_status  -- Pick the highest status per Execution Number
-          FROM hive.switch.txn_info_snapshot_v3 ti
+          FROM team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND first_phase = 'ReqMandate-PAYER'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'REVOKE'
+              first_phase = 'ReqMandate-PAYER'
+              and ti.type = 'REVOKE'
           GROUP BY 1, 2, 3
       ),
       status_counts AS (
@@ -51,7 +46,7 @@ view: payer_revoke_count {
       FROM status_counts sc
       GROUP BY sc.created_date
       ORDER BY sc.created_date DESC
- ;;
+      ;;
   }
 
   suggestions: no
@@ -68,14 +63,8 @@ view: payer_revoke_count {
 
   dimension: paytm_success {
     type: number
-    label: "Paytm Success"
-    sql: ${TABLE}."Paytm Success" ;;
-  }
-
-  dimension: paytm_failure {
-    type: number
-    label: "Paytm Failure"
-    sql: ${TABLE}."Paytm Failure" ;;
+    label: "paytm Success"
+    sql: ${TABLE}."paytm Success" ;;
   }
 
   dimension: ptaxis_success {
@@ -84,22 +73,10 @@ view: payer_revoke_count {
     sql: ${TABLE}."ptaxis Success" ;;
   }
 
-  dimension: ptaxis_failure {
-    type: number
-    label: "ptaxis Failure"
-    sql: ${TABLE}."ptaxis Failure" ;;
-  }
-
   dimension: pthdfc_success {
     type: number
     label: "pthdfc Success"
     sql: ${TABLE}."pthdfc Success" ;;
-  }
-
-  dimension: pthdfc_failure {
-    type: number
-    label: "pthdfc Failure"
-    sql: ${TABLE}."pthdfc Failure" ;;
   }
 
   dimension: ptsbi_success {
@@ -108,16 +85,34 @@ view: payer_revoke_count {
     sql: ${TABLE}."ptsbi Success" ;;
   }
 
-  dimension: ptsbi_failure {
-    type: number
-    label: "ptsbi Failure"
-    sql: ${TABLE}."ptsbi Failure" ;;
-  }
-
   dimension: ptyes_success {
     type: number
     label: "ptyes Success"
     sql: ${TABLE}."ptyes Success" ;;
+  }
+
+  dimension: paytm_failure {
+    type: number
+    label: "paytm Failure"
+    sql: ${TABLE}."paytm Failure" ;;
+  }
+
+  dimension: ptaxis_failure {
+    type: number
+    label: "ptaxis Failure"
+    sql: ${TABLE}."ptaxis Failure" ;;
+  }
+
+  dimension: pthdfc_failure {
+    type: number
+    label: "pthdfc Failure"
+    sql: ${TABLE}."pthdfc Failure" ;;
+  }
+
+  dimension: ptsbi_failure {
+    type: number
+    label: "ptsbi Failure"
+    sql: ${TABLE}."ptsbi Failure" ;;
   }
 
   dimension: ptyes_failure {
@@ -142,14 +137,14 @@ view: payer_revoke_count {
     fields: [
       created_date,
       paytm_success,
-      paytm_failure,
       ptaxis_success,
-      ptaxis_failure,
       pthdfc_success,
-      pthdfc_failure,
       ptsbi_success,
-      ptsbi_failure,
       ptyes_success,
+      paytm_failure,
+      ptaxis_failure,
+      pthdfc_failure,
+      ptsbi_failure,
       ptyes_failure,
       total_success,
       total_failure

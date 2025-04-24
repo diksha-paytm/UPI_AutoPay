@@ -89,7 +89,7 @@ explore: revoke_sr {}
 explore: revoke_sr_payer {}
 explore: creations_count_handles_and_mode {}
 explore: creations_sr_across_mode {}
-explore: payer_revoke_count {}
+explore: revoke_count_payer {}
 explore: payee_revoke_count {}
 explore: pdn_count {}
 explore: creations_os_wise_count {}
