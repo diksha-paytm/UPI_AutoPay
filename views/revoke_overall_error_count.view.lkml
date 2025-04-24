@@ -1,4 +1,4 @@
-view: revokes_error_code_all_handles {
+view: revoke_overall_error_count {
   derived_table: {
     sql: WITH final_status AS (
           SELECT
@@ -6,15 +6,9 @@ view: revokes_error_code_all_handles {
               COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
               txn_id AS combi,
               MAX_BY(ti.status, ti.created_on) AS final_status
-          FROM hive.switch.txn_info_snapshot_v3 ti
+          FROM team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND first_phase = 'ReqMandate-PAYER'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'REVOKE'
+              ti.type = 'REVOKE'
 
       GROUP BY 1, 2, 3
       ),
