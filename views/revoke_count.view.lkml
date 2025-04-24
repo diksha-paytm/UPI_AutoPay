@@ -7,14 +7,9 @@ view: revoke_count {
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
               ti.txn_id AS combi,
              MAX_BY(ti.status, ti.created_on) AS final_status  -- Pick the highest status per Execution Number
-          FROM hive.switch.txn_info_snapshot_v3 ti
+          FROM team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'REVOKE'
+              ti.type = 'REVOKE'
           GROUP BY 1, 2, 3
       ),
       status_counts AS (
