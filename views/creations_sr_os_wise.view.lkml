@@ -14,14 +14,9 @@ view: creations_sr_os_wise {
    NULLIF(COUNT(DISTINCT umn), 0), 2
   ) AS sr_value
   FROM
-              hive.switch.txn_info_snapshot_v3 ti
+             team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'CREATE'
+              ti.type = 'CREATE'
           GROUP BY
               1, 2
       )
@@ -36,7 +31,7 @@ view: creations_sr_os_wise {
           created_date
       ORDER BY
           created_date DESC
-       ;;
+ ;;
   }
 
   suggestions: no
