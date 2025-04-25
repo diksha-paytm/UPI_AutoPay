@@ -7,14 +7,9 @@ view: creations_os_wise_count {
               COUNT(DISTINCT CASE WHEN ti.status = 'SUCCESS' THEN ti.umn ELSE NULL END) AS success,
               COUNT(DISTINCT CASE WHEN ti.status = 'FAILURE' THEN ti.umn ELSE NULL END) AS failure
           FROM
-              hive.switch.txn_info_snapshot_v3 ti
+              team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'CREATE'
+              ti.type = 'CREATE'
               AND ti.status IN ('FAILURE', 'SUCCESS')
           GROUP BY
               DATE(ti.created_on),
@@ -43,7 +38,7 @@ view: creations_os_wise_count {
           created_date
       ORDER BY
           created_date DESC
-       ;;
+ ;;
   }
 
   suggestions: no
