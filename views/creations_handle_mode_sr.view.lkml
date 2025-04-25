@@ -14,14 +14,9 @@ view: creations_handle_mode_sr {
     ) * 100.0 /
    NULLIF(COUNT(DISTINCT umn), 0), 2
   ) AS sr
-  FROM hive.switch.txn_info_snapshot_v3 ti
+  FROM team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'CREATE'
+              ti.type = 'CREATE'
               AND LOWER(SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1)) IN ('ptaxis', 'pthdfc', 'ptsbi', 'ptyes')
           GROUP BY 1, 2, 3
       )
