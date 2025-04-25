@@ -7,18 +7,12 @@ view: creations_handle_user_count {
               COUNT(DISTINCT CASE WHEN ti.status = 'SUCCESS' THEN tp.scope_cust_id ELSE NULL END) AS success_users,
               COUNT(DISTINCT CASE WHEN ti.status = 'FAILURE' THEN tp.scope_cust_id ELSE NULL END) AS failure_users
           FROM
-              hive.switch.txn_info_snapshot_v3 ti
+              team_product.looker_RM ti
           JOIN
-              hive.switch.txn_participants_snapshot_v3 tp
-              ON ti.txn_id = tp.txn_id AND tp.participant_type = 'PAYER'
+              team_product.looker_txn_parti_RM tp
+              ON ti.txn_id = tp.txn_id
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict $.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'CREATE'
+             ti.type = 'CREATE'
               AND ti.status IN ('SUCCESS', 'FAILURE')
           GROUP BY
               DATE(ti.created_on),
