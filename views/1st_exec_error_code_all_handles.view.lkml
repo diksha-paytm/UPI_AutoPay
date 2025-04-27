@@ -11,15 +11,10 @@ view: 1st_exec_error_code_all_handles {
                       '"', ''
                   )
               ) AS combi,
-              MAX(ti.status) AS final_status
-          FROM hive.switch.txn_info_snapshot_v3 ti
+              MAX_BY(ti.status, ti.created_on) AS final_status
+          FROM team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'COLLECT'
+              ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) = 1
           GROUP BY 1, 2, 3
       ),
