@@ -10,19 +10,14 @@ view: recurring_paytm_error_count {
                       JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
                       '"', ''
                   )
-              ) AS combi
-          FROM hive.switch.txn_info_snapshot_v3 ti
+              ) AS combi,
+              MAX_BY(ti.status, ti.created_on) AS final_status
+          FROM team_product.looker_RM ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'COLLECT'
+              ti.type = 'COLLECT'
               AND SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) = 'paytm'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
           GROUP BY 1, 2, 3
-           HAVING MAX_BY(ti.status, ti.created_on) = 'FAILURE'
       ),
       failure_data AS (
           -- Count only those where the final status = 'FAILURE'
@@ -31,6 +26,7 @@ view: recurring_paytm_error_count {
               fs.npci_resp_code,
               COUNT(DISTINCT fs.combi) AS failure_count
           FROM final_status fs
+          WHERE fs.final_status = 'FAILURE'
           GROUP BY 1, 2
       ),
       latest_failures AS (
@@ -67,7 +63,6 @@ view: recurring_paytm_error_count {
       JOIN daily_total_failures dtf
           ON fd.created_date = dtf.created_date
       ORDER BY fd.created_date DESC, fd.failure_count DESC
-
  ;;
   }
 
