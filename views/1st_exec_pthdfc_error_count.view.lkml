@@ -11,7 +11,7 @@ view: 1st_exec_pthdfc_error_count {
                       '"', ''
                   )
               ) AS combi,
-              MAX(ti.status) AS final_status
+              MAX_BY(ti.status, ti.created_on) AS final_status
           FROM team_product.looker_RM ti
           WHERE
               ti.type = 'COLLECT'
