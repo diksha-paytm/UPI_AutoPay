@@ -21,12 +21,9 @@ view: pdn_count {
                   END
               ) AS failure
           FROM
-              hive.switch.financial_notification_snapshot_v3 fn
+              team_product.looker_financial_notification fn
           WHERE
-               fn.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
-              AND fn.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND fn.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND fn.status IN ('FAILURE', 'SUCCESS')
+               fn.status IN ('FAILURE', 'SUCCESS')
           GROUP BY
               DATE(fn.created_on),
               SUBSTRING(
