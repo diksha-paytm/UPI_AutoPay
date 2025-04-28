@@ -14,12 +14,9 @@ view: pdn_revoke_exec_success {
                   '[+-][0-9]{2}:[0-9]{2}$', ''
               ) AS mandate_exec_date,  -- Mandate Execution Date
               SUBSTRING(fn.txn_ref_id FROM POSITION('@' IN fn.txn_ref_id) + 1) AS handle -- Extract Handle
-          FROM hive.switch.financial_notification_snapshot_v3 fn
+          FROM team_product.looker_financial_notification fn
           WHERE fn.status = 'SUCCESS'
-              AND fn.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-                    AND created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-                    AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-      ),
+             ),
 
       revoke_check AS (
       -- ✅ Find revokes that happened strictly between FN creation and mandate execution date
@@ -28,14 +25,11 @@ view: pdn_revoke_exec_success {
       pdn.handle,
       ti.txn_id
       FROM pdn_data pdn
-      JOIN hive.switch.txn_info_snapshot_v3 ti
+      JOIN team_product.looker_RM ti
       ON ti.umn = pdn.umn
       WHERE ti.type = 'REVOKE'
       AND ti.first_phase = 'ReqMandate-PAYER'
-      AND ti.business_type = 'MANDATE'
-      AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-      AND ti.status = 'SUCCESS'
-      AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
+      and ti.status = 'SUCCESS'
       -- ✅ Allow revokes at any time between FN creation and Mandate Execution Date
       AND ti.created_on BETWEEN CAST(pdn.fn_created_on AS TIMESTAMP)
       AND CAST(pdn.mandate_exec_date AS TIMESTAMP)
