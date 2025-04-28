@@ -6,19 +6,10 @@ view: cc_create_count {
               DATE(ti.created_on) AS created_date,
               SUBSTRING(ti.umn FROM POSITION('@' IN ti.umn) + 1) AS handle,
               ti.umn AS combi,
-              MAX(ti.status) AS final_status  -- Pick the highest status per Execution Number
-          FROM hive.switch.txn_info_snapshot_v3 ti
-          JOIN hive.switch.txn_participants_snapshot_v3 tp
-              ON ti.txn_id = tp.txn_id
+              MAX_BY(ti.status, ti.created_on) AS final_status  -- Pick the highest status per Execution Number
+          FROM team_product.looker_RM_CC ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND tp.account_type='CREDIT'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'CREATE'
+              ti.type = 'CREATE'
           GROUP BY 1, 2, 3
       ),
       status_counts AS (
