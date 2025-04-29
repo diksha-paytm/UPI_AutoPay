@@ -14,18 +14,9 @@ view: cc_recurring_exec_error_count {
                 )
             )
         ) AS failure
-          FROM hive.switch.txn_info_snapshot_v3 ti
-          join hive.switch.txn_participants_snapshot_v3 tp
-          on ti.txn_id = tp.txn_id
+          FROM team_product.looker_RM_CC ti
           WHERE
-              ti.business_type = 'MANDATE'
-              and tp.account_type = 'CREDIT'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'COLLECT'
+              ti.type = 'COLLECT'
               AND ti.status = 'FAILURE'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
           GROUP BY 1, 2
