@@ -5,25 +5,14 @@ view: cc_recurring_exec_payee_wise_failure {
           SELECT DISTINCT
               tp1.vpa AS payee_vpa,
               tp1.name AS payee_name
-          FROM hive.switch.txn_info_snapshot_v3 ti
-          JOIN hive.switch.txn_participants_snapshot_v3 tp
-           ON ti.txn_id = tp.txn_id
-          JOIN hive.switch.txn_participants_snapshot_v3 tp1
+          FROM team_product.looker_RM_CC ti
+          JOIN team_product.looker_txn_parti_RM tp1
             ON ti.txn_id = tp1.txn_id
           WHERE
-              ti.business_type = 'MANDATE'
-              AND tp.account_type = 'CREDIT'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND tp1.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-              AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-              AND ti.type = 'COLLECT'
+              ti.type = 'COLLECT'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
               AND ti.status = 'FAILURE'
               AND tp1.participant_type = 'PAYEE'
-              AND tp.participant_type = 'PAYER'
 
       ),
 
@@ -34,27 +23,16 @@ view: cc_recurring_exec_payee_wise_failure {
       tp1.vpa AS payee_vpa,
       tp1.name AS payee_name,
       COUNT(DISTINCT ti.umn) AS count
-      FROM hive.switch.txn_info_snapshot_v3 ti
-      JOIN hive.switch.txn_participants_snapshot_v3 tp
-      ON ti.txn_id = tp.txn_id
-      JOIN hive.switch.txn_participants_snapshot_v3 tp1
+      FROM team_product.looker_RM_CC ti
+      JOIN team_product.looker_txn_parti_RM tp1
       ON ti.txn_id = tp1.txn_id
       JOIN all_payees ap
       ON tp1.vpa = ap.payee_vpa AND tp1.name = ap.payee_name
       WHERE
-      ti.business_type = 'MANDATE'
-      AND tp.account_type = 'CREDIT'
-      AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-      AND ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-      AND tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-      AND tp1.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
-      AND ti.created_on >= CAST(DATE_ADD('day', -30, CURRENT_DATE) AS TIMESTAMP)
-      AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
-      AND ti.type = 'COLLECT'
+      ti.type = 'COLLECT'
       AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
       AND ti.status = 'FAILURE'
       AND tp1.participant_type = 'PAYEE'
-      AND tp.participant_type = 'PAYER'
       GROUP BY 1,2,3
       )
 
