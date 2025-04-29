@@ -1,60 +1,67 @@
 view: cc_recurring_exec_error_count {
   derived_table: {
-    sql: WITH failures AS (
+    sql: WITH final_status AS (
           SELECT
               DATE(ti.created_on) AS created_date,
               COALESCE(NULLIF(ti.npci_resp_code, ''), 'NULL') AS npci_resp_code,
-              COUNT(
-            DISTINCT CONCAT(
-                ti.umn,
-                REPLACE(
-                    JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
-                    '"',
-                    ''
-                )
-            )
-        ) AS failure
+              CONCAT(
+                  umn,
+                  REPLACE(
+                      JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
+                      '"', ''
+                  )
+              ) AS combi,
+              MAX_BY(ti.status, ti.created_on) AS final_status
           FROM team_product.looker_RM_CC ti
           WHERE
               ti.type = 'COLLECT'
-              AND ti.status = 'FAILURE'
               AND CAST(REPLACE(JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'), '"', '') AS INTEGER) > 1
+          GROUP BY 1, 2, 3
+      ),
+      failure_data AS (
+          -- Count only those where the final status = 'FAILURE'
+          SELECT
+              fs.created_date,
+              fs.npci_resp_code,
+              COUNT(DISTINCT fs.combi) AS failure_count
+          FROM final_status fs
+          WHERE fs.final_status = 'FAILURE'
           GROUP BY 1, 2
       ),
       latest_failures AS (
           -- Identify the latest day's failure data
           SELECT created_date
-          FROM failures
+          FROM failure_data
           ORDER BY created_date DESC
           LIMIT 1
       ),
       top_10_codes AS (
-          -- Find the top 5 failure response codes for Paytm on the latest day
+          -- Find the top 10 failure response codes for Paytm on the latest day
           SELECT
-              pf.npci_resp_code
-          FROM failures pf
+              fd.npci_resp_code
+          FROM failure_data fd
           JOIN latest_failures lf
-              ON pf.created_date = lf.created_date
-          ORDER BY pf.failure DESC
+              ON fd.created_date = lf.created_date
+          ORDER BY fd.failure_count DESC
           LIMIT 10
       ),
       daily_total_failures AS (
           -- Compute total failures for Paytm on each day
-          SELECT created_date, SUM(failure) AS total_failures
-          FROM failures
+          SELECT created_date, SUM(failure_count) AS total_failures
+          FROM failure_data
           GROUP BY created_date
       )
       SELECT
-          pf.created_date,
-          pf.npci_resp_code,
-          pf.failure AS count,
+          fd.created_date,
+          fd.npci_resp_code,
+          fd.failure_count AS count,
           dtf.total_failures AS total
-      FROM failures pf
-      JOIN top_10_codes t5
-          ON pf.npci_resp_code = t5.npci_resp_code
+      FROM failure_data fd
+      JOIN top_10_codes t10
+          ON fd.npci_resp_code = t10.npci_resp_code
       JOIN daily_total_failures dtf
-          ON pf.created_date = dtf.created_date
-      ORDER BY pf.created_date DESC, pf.failure DESC
+          ON fd.created_date = dtf.created_date
+      ORDER BY fd.created_date DESC, fd.failure_count DESC
  ;;
   }
 
