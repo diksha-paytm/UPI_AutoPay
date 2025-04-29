@@ -49,6 +49,7 @@ view: cc_datadump {
         AND tp.participant_type = 'PAYER'
         AND tp1.participant_type = 'PAYEE'
         AND ti.created_on >= CAST(DATE_ADD('day', -50,CURRENT_DATE) AS TIMESTAMP)
+        and ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
         ORDER BY
         1 desc
  ;;
