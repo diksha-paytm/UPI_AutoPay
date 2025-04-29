@@ -34,22 +34,14 @@ view: cc_datadump {
         ti.first_phase,
         ti.umn as umn
       FROM
-        hive.switch.txn_info_snapshot_v3 ti
-        JOIN hive.switch.txn_participants_snapshot_v3 tp
+        team_product.looker_RM_CC ti
+        JOIN team_product.looker_txn_parti_RM tp
           ON ti.txn_id = tp.txn_id
-        JOIN hive.switch.txn_participants_snapshot_v3 tp1
+        JOIN team_product.looker_txn_parti_RM tp1
           ON ti.txn_id = tp1.txn_id
       WHERE
-        ti.business_type = 'MANDATE'
-        AND tp.account_type = 'CREDIT'
-        AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"14"'
-        AND ti.dl_last_updated >= DATE_ADD('day', -50,CURRENT_DATE)
-        AND tp.dl_last_updated >= DATE_ADD('day', -50,CURRENT_DATE)
-        AND tp1.dl_last_updated >= DATE_ADD('day', -50,CURRENT_DATE)
-        AND tp.participant_type = 'PAYER'
+        tp.participant_type = 'PAYER'
         AND tp1.participant_type = 'PAYEE'
-        AND ti.created_on >= CAST(DATE_ADD('day', -50,CURRENT_DATE) AS TIMESTAMP)
-        and ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
         ORDER BY
         1 desc
  ;;
