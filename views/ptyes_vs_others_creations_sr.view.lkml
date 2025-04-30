@@ -7,12 +7,9 @@ view: ptyes_vs_others_creations_sr {
               SUBSTRING(umn FROM POSITION('@' IN umn) + 1) AS handle,
               COUNT(DISTINCT umn) AS total_txns,
               COUNT(DISTINCT CASE WHEN status = 'SUCCESS' THEN umn ELSE NULL END) AS success_txns
-          FROM hive.switch.txn_info_snapshot_v3
+          FROM team_product.looker_RM
           WHERE
-              business_type = 'MANDATE'
-              AND JSON_QUERY(extended_info, 'strict$.purpose') = '"14"'
-              AND dl_last_updated >= DATE_ADD('day', -7, CURRENT_DATE)
-              AND created_on >= CAST(DATE_ADD('day', -7, CURRENT_DATE) AS TIMESTAMP)
+              created_on >= CAST(DATE_ADD('day', -7, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'CREATE'
               AND SUBSTRING(umn FROM POSITION('@' IN umn) + 1) IN ('ptsbi', 'ptyes', 'ptaxis', 'pthdfc')
@@ -64,7 +61,7 @@ view: ptyes_vs_others_creations_sr {
       FROM pivot_data p
       LEFT JOIN last_7_days_agg l ON 1=1
       GROUP BY l.last_7_ptyes_sr, l.last_7_pthdfc_sr, l.last_7_ptaxis_sr, l.last_7_ptsbi_sr
-       ;;
+ ;;
   }
 
   suggestions: no
