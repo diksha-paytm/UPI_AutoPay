@@ -16,21 +16,7 @@ view: sbmd_sr {
                   ) AS INTEGER
               ) AS execution_no
           FROM
-              hive.switch.txn_info_snapshot_v3 ti
-              JOIN hive.switch.txn_participants_snapshot_v3 tp
-                  ON ti.txn_id = tp.txn_id
-              JOIN hive.switch.txn_participants_snapshot_v3 tp1
-                  ON ti.txn_id = tp1.txn_id
-          WHERE
-              ti.business_type = 'MANDATE'
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"76"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp1.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp.participant_type = 'PAYER'
-              AND tp1.participant_type = 'PAYEE'
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
-              AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
+              team_product.looker_RM_SBMD ti-- End before today
       ),
       aggregated_data AS (
           SELECT
@@ -40,7 +26,7 @@ view: sbmd_sr {
                   WHEN COUNT(CASE WHEN type = 'CREATE' AND status IN ('FAILURE', 'SUCCESS') THEN 1 END) > 0
                   THEN ROUND(
                       COUNT(CASE WHEN type = 'CREATE' AND status = 'SUCCESS' THEN 1 END) * 100.0 /
-                      COUNT(CASE WHEN type = 'CREATE' AND status IN ('FAILURE', 'SUCCESS') THEN 1 END), 2
+                      COUNT(CASE WHEN type = 'CREATE'  THEN 1 END), 2
                   )
               END AS create_sr,
               -- COLLECT - First Execution
@@ -48,7 +34,7 @@ view: sbmd_sr {
                   WHEN COUNT(CASE WHEN type = 'COLLECT' AND execution_no = 1 AND status IN ('FAILURE', 'SUCCESS') THEN 1 END) > 0
                   THEN ROUND(
                       COUNT(CASE WHEN type = 'COLLECT' AND execution_no = 1 AND status = 'SUCCESS' THEN 1 END) * 100.0 /
-                      COUNT(CASE WHEN type = 'COLLECT' AND execution_no = 1 AND status IN ('FAILURE', 'SUCCESS') THEN 1 END), 2
+                      COUNT(CASE WHEN type = 'COLLECT' AND execution_no = 1  THEN 1 END), 2
                   )
               END AS First_Exec_SR,
               -- COLLECT - Recurring Execution
@@ -56,7 +42,7 @@ view: sbmd_sr {
                   WHEN COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 AND status IN ('FAILURE', 'SUCCESS') THEN 1 END) > 0
                   THEN ROUND(
                       COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 AND status = 'SUCCESS' THEN 1 END) * 100.0 /
-                      COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 AND status IN ('FAILURE', 'SUCCESS') THEN 1 END), 2
+                      COUNT(CASE WHEN type = 'COLLECT' AND execution_no > 1 THEN 1 END), 2
                   )
               END AS Recurring_Exec_SR,
               -- REVOKE
@@ -64,7 +50,7 @@ view: sbmd_sr {
                   WHEN COUNT(CASE WHEN type = 'REVOKE' AND status IN ('FAILURE', 'SUCCESS') THEN 1 END) > 0
                   THEN ROUND(
                       COUNT(CASE WHEN type = 'REVOKE' AND status = 'SUCCESS' THEN 1 END) * 100.0 /
-                      COUNT(CASE WHEN type = 'REVOKE' AND status IN ('FAILURE', 'SUCCESS') THEN 1 END), 2
+                      COUNT(CASE WHEN type = 'REVOKE'  THEN 1 END), 2
                   )
               END AS revoke_sr
           FROM base_data
