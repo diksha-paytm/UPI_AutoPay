@@ -8,12 +8,9 @@ view: ptyes_vs_others_creations_error_contri {
               DATE(created_on) AS txn_date,
               SUBSTRING(umn FROM POSITION('@' IN umn) + 1) AS handle,
               COUNT(DISTINCT umn) AS failures
-          FROM hive.switch.txn_info_snapshot_v3
+          FROM team_product.looker_RM
           WHERE
-              business_type = 'MANDATE'
-              AND JSON_QUERY(extended_info, 'strict$.purpose') = '"14"'
-              AND dl_last_updated >= DATE_ADD('day', -7, CURRENT_DATE)
-              AND created_on >= CAST(DATE_ADD('day', -7, CURRENT_DATE) AS TIMESTAMP)
+               created_on >= CAST(DATE_ADD('day', -7, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'CREATE'
               AND status = 'FAILURE'
@@ -26,12 +23,9 @@ view: ptyes_vs_others_creations_error_contri {
               DATE(created_on) AS txn_date,
               SUBSTRING(umn FROM POSITION('@' IN umn) + 1) AS handle,
               COUNT(DISTINCT umn) AS total_txns
-          FROM hive.switch.txn_info_snapshot_v3
+          FROM team_product.looker_RM
           WHERE
-              business_type = 'MANDATE'
-              AND JSON_QUERY(extended_info, 'strict$.purpose') = '"14"'
-              AND dl_last_updated >= DATE_ADD('day', -7, CURRENT_DATE)
-              AND created_on >= CAST(DATE_ADD('day', -7, CURRENT_DATE) AS TIMESTAMP)
+              created_on >= CAST(DATE_ADD('day', -7, CURRENT_DATE) AS TIMESTAMP)
               AND created_on < CAST(CURRENT_DATE AS TIMESTAMP)
               AND type = 'CREATE'
           GROUP BY 1, 2
@@ -218,6 +212,12 @@ view: ptyes_vs_others_creations_error_contri {
     sql: ${TABLE}."D-1 ptyes vs ptaxis" ;;
   }
 
+  dimension: d1_ptyes_vs_ptsbi {
+    type: string
+    label: "D-1 ptyes vs ptsbi"
+    sql: ${TABLE}."D-1 ptyes vs ptsbi" ;;
+  }
+
   dimension: d2_ptyes_vs_pthdfc {
     type: string
     label: "D-2 ptyes vs pthdfc"
@@ -228,6 +228,12 @@ view: ptyes_vs_others_creations_error_contri {
     type: string
     label: "D-2 ptyes vs ptaxis"
     sql: ${TABLE}."D-2 ptyes vs ptaxis" ;;
+  }
+
+  dimension: d2_ptyes_vs_ptsbi {
+    type: string
+    label: "D-2 ptyes vs ptsbi"
+    sql: ${TABLE}."D-2 ptyes vs ptsbi" ;;
   }
 
   dimension: d3_ptyes_vs_pthdfc {
@@ -242,6 +248,12 @@ view: ptyes_vs_others_creations_error_contri {
     sql: ${TABLE}."D-3 ptyes vs ptaxis" ;;
   }
 
+  dimension: d3_ptyes_vs_ptsbi {
+    type: string
+    label: "D-3 ptyes vs ptsbi"
+    sql: ${TABLE}."D-3 ptyes vs ptsbi" ;;
+  }
+
   dimension: last_7_days_ptyes_vs_pthdfc {
     type: string
     label: "Last 7 Days ptyes vs pthdfc"
@@ -254,18 +266,28 @@ view: ptyes_vs_others_creations_error_contri {
     sql: ${TABLE}."Last 7 Days ptyes vs ptaxis" ;;
   }
 
+  dimension: last_7_days_ptyes_vs_ptsbi {
+    type: string
+    label: "Last 7 Days ptyes vs ptsbi"
+    sql: ${TABLE}."Last 7 Days ptyes vs ptsbi" ;;
+  }
+
   set: detail {
     fields: [
       npci_resp_code,
       app_resp_code,
       d1_ptyes_vs_pthdfc,
       d1_ptyes_vs_ptaxis,
+      d1_ptyes_vs_ptsbi,
       d2_ptyes_vs_pthdfc,
       d2_ptyes_vs_ptaxis,
+      d2_ptyes_vs_ptsbi,
       d3_ptyes_vs_pthdfc,
       d3_ptyes_vs_ptaxis,
+      d3_ptyes_vs_ptsbi,
       last_7_days_ptyes_vs_pthdfc,
-      last_7_days_ptyes_vs_ptaxis
+      last_7_days_ptyes_vs_ptaxis,
+      last_7_days_ptyes_vs_ptsbi
     ]
   }
 }
