@@ -12,27 +12,15 @@ view: sbmd_1st_exec_count {
                       ''
                   )
               )) AS txn_count
-          FROM hive.switch.txn_info_snapshot_v3 ti
-          JOIN hive.switch.txn_participants_snapshot_v3 tp
-              ON ti.txn_id = tp.txn_id
-          JOIN hive.switch.txn_participants_snapshot_v3 tp1
-              ON ti.txn_id = tp1.txn_id
+          FROM team_product.looker_RM_SBMD ti
           WHERE
-              ti.business_type = 'MANDATE'
-              AND CAST(
+              CAST(
                   REPLACE(
                       JSON_QUERY(ti.extended_info, 'strict $.MANDATE_EXECUTION_NUMBER'),
                       '"',
                       ''
                   ) AS INTEGER
               ) = 1
-              AND JSON_QUERY(ti.extended_info, 'strict$.purpose') = '"76"'
-              AND ti.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp1.dl_last_updated >= DATE_ADD('day', -50, CURRENT_DATE)
-              AND tp.participant_type = 'PAYER'
-              AND tp1.participant_type = 'PAYEE'
-              AND ti.created_on >= CAST(DATE_ADD('day', -50, CURRENT_DATE) AS TIMESTAMP)
               AND ti.type = 'COLLECT'
           GROUP BY 1, 2
       ),
@@ -41,7 +29,7 @@ view: sbmd_1st_exec_count {
               created_date,
               CAST(SUM(CASE WHEN status = 'SUCCESS' THEN txn_count ELSE 0 END) AS BIGINT) AS success_count,
               CAST(SUM(CASE WHEN status = 'FAILURE' THEN txn_count ELSE 0 END) AS BIGINT) AS failure_count,
-              CAST(SUM(CASE WHEN status IN ('FAILURE', 'SUCCESS') THEN txn_count ELSE 0 END) AS BIGINT) AS total_count
+              CAST(SUM(txn_count) AS BIGINT) AS total_count
           FROM txn_data
           GROUP BY 1
       )
