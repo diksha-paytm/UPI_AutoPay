@@ -3,7 +3,7 @@ view: sbmd_datadump {
     sql: select
       date(ti.created_on) as date_,
         ti.type,
-        status,
+        ti.status,
               SUBSTRING(
                 ti.umn
                 FROM
@@ -15,11 +15,11 @@ view: sbmd_datadump {
                 ''
             ) AS initiation_mode,
         ti.npci_resp_code,
-              tp.name AS payer_name,
+              ti.name AS payer_name,
               tp1.name AS payee_name,
               tp1.bank_code as bene_bank,
-        tp.bank_code as rem_bank,
-              tp.vpa AS payer_vpa,
+        ti.bank_code as rem_bank,
+              ti.vpa AS payer_vpa,
               tp1.vpa AS payee_vpa,
               replace(
                     json_query(
@@ -32,25 +32,13 @@ view: sbmd_datadump {
               ti.first_phase,
               ti.umn as umn
       from
-        hive.switch.txn_info_snapshot_v3 ti
-              JOIN hive.switch.txn_participants_snapshot_v3 tp
-                ON ti.txn_id = tp.txn_id
-              JOIN hive.switch.txn_participants_snapshot_v3 tp1
+        team_product.looker_RM_SBMD ti
+              JOIN team_product.looker_RM_SBMD_payee tp1
                 ON ti.txn_id = tp1.txn_id
-      where
-        ti.business_type = 'MANDATE'
-        and tp.participant_type='PAYER'
-        and tp1.participant_type='PAYEE'
-        and json_query(ti.extended_info, 'strict$.purpose') = '"76"'
-        AND ti.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
-        AND tp.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
-        AND tp1.dl_last_updated >= DATE_ADD('day', -30,CURRENT_DATE)
-        AND ti.created_on >= CAST(DATE_ADD('day', -30,CURRENT_DATE) AS TIMESTAMP)
-        AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP) -- End before today
-       --and ti.status in ('FAILURE','SUCCESS')
+
       order by
-        1 desc
- ;;
+      1 desc
+      ;;
   }
 
   suggestions: no
