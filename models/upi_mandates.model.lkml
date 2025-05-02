@@ -5,6 +5,7 @@ explore: ptyes_vs_others_creations_sr {}
 explore: 1st_exec_user_count {}
 explore: revoke_overall_error_count {}
 explore: pdn_revoke_exec_success{}
+explore: cc_um1_error_code {}
 explore: pdn_revoke_exec_failure {}
 explore: 1st_exec_ptaxis_error_count{}
 explore: creations_error_code_all_handles {}
