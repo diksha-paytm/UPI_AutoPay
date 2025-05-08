@@ -5,6 +5,7 @@ explore: ptyes_vs_others_creations_sr {}
 explore: 1st_exec_user_count {}
 explore: revoke_overall_error_count {}
 explore: pdn_revoke_exec_success{}
+explore: payee_as_paytm_a_p_count {}
 explore: cc_um1_error_code {}
 explore: pdn_revoke_exec_failure {}
 explore: 1st_exec_ptaxis_error_count{}
