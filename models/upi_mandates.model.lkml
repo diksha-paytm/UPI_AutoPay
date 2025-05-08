@@ -3,6 +3,7 @@ connection: "starburst_connection"
 include: "/views/**/*.view"
 explore: ptyes_vs_others_creations_sr {}
 explore: 1st_exec_user_count {}
+explore: loan_payee_as_paytm_a_p_count {}
 explore: revoke_overall_error_count {}
 explore: pdn_revoke_exec_success{}
 explore: payee_as_paytm_a_p_count {}
