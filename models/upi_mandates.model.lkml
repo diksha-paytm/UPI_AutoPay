@@ -6,6 +6,7 @@ explore: 1st_exec_user_count {}
 explore: loan_payee_as_paytm_a_p_count {}
 explore: revoke_overall_error_count {}
 explore: pdn_revoke_exec_success{}
+explore: ptybl_as_payee_a_p_count {}
 explore: payee_as_paytm_a_p_count {}
 explore: cc_um1_error_code {}
 explore: pdn_revoke_exec_failure {}
