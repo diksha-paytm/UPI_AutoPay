@@ -11,6 +11,7 @@ explore: creations_um1_account_type_count {}
 explore: overall_a_p_count {}
 explore: loan_payee_as_paytm_a_p_count {}
 explore: overall_loan_a_p_count {}
+explore: creations_top_10_merch_za_error_count {}
 explore: payee_as_paytm_ptybl_a_p_count {}
 explore: loan_payee_as_others_a_p_count {}
 explore: loan_ptybl_as_payee_a_p_count {}
