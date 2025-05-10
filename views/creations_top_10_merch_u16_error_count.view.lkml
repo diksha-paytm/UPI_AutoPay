@@ -16,40 +16,77 @@ view: creations_top_10_merch_u16_error_count {
               AND ti.status = 'FAILURE'
           GROUP BY 1, 2, 3
       ),
+
       latest_failures AS (
-          SELECT created_date
-          FROM paytm_failures
-          ORDER BY created_date DESC
-          LIMIT 1
+      SELECT created_date
+      FROM paytm_failures
+      ORDER BY created_date DESC
+      LIMIT 1
       ),
+
       top_10_vpa AS (
-          SELECT
-              pf.payee_vpa
-          FROM paytm_failures pf
-          JOIN latest_failures lf
-              ON pf.created_date = lf.created_date
-          ORDER BY pf.failure DESC
-          LIMIT 10
-      ),
-      daily_total_failures AS (
-          SELECT created_date, SUM(failure) AS total_failures
-          FROM paytm_failures
-          GROUP BY created_date
-      )
+      -- Find top 10 VPA for the latest day with their respective failure count
       SELECT
-          pf.created_date,
-          pf.payee_vpa,
-          MAX(pf.payee_name) AS payee_name,
-          pf.failure AS count,
-          dtf.total_failures AS total
+      pf.payee_vpa,
+      MAX(pf.failure) AS max_failure
+      FROM paytm_failures pf
+      JOIN latest_failures lf
+      ON pf.created_date = lf.created_date
+      GROUP BY pf.payee_vpa
+      ORDER BY max_failure DESC
+      LIMIT 10
+      ),
+
+      daily_total_failures AS (
+      SELECT
+      created_date,
+      SUM(failure) AS total_failures
+      FROM paytm_failures
+      GROUP BY created_date
+      ),
+
+      filtered_vpa_failures AS (
+      -- Filter only the top 10 VPA for every date, avoiding duplicates
+      SELECT DISTINCT
+      pf.created_date,
+      pf.payee_vpa,
+      pf.payee_name,
+      pf.failure AS count,
+      ROW_NUMBER() OVER (PARTITION BY pf.created_date ORDER BY pf.failure DESC) AS row_num
       FROM paytm_failures pf
       JOIN top_10_vpa t5
-          ON pf.payee_vpa = t5.payee_vpa
-      JOIN daily_total_failures dtf
-          ON pf.created_date = dtf.created_date
-      GROUP BY pf.created_date, pf.payee_vpa, pf.failure, dtf.total_failures
-      ORDER BY pf.created_date DESC, pf.failure DESC
-       ;;
+      ON pf.payee_vpa = t5.payee_vpa
+      ),
+
+      -- Add 'TOTAL' row for each date with proper row ordering
+      final_data AS (
+      SELECT
+      created_date,
+      payee_vpa,
+      payee_name,
+      count,
+      row_num
+      FROM filtered_vpa_failures
+
+      UNION ALL
+
+      SELECT
+      dtf.created_date,
+      'TOTAL' AS payee_vpa,
+      'COUNT' AS payee_name,
+      dtf.total_failures AS count,
+      (SELECT MAX(row_num) + 1 FROM filtered_vpa_failures WHERE created_date = dtf.created_date) AS row_num
+      FROM daily_total_failures dtf
+      )
+
+      SELECT
+      created_date,
+      payee_vpa,
+      payee_name,
+      count
+      FROM final_data
+      ORDER BY created_date DESC, row_num
+      ;;
   }
 
   suggestions: no
@@ -79,12 +116,7 @@ view: creations_top_10_merch_u16_error_count {
     sql: ${TABLE}."count" ;;
   }
 
-  dimension: total {
-    type: number
-    sql: ${TABLE}.total ;;
-  }
-
   set: detail {
-    fields: [created_date, payee_vpa, payee_name, count_, total]
+    fields: [created_date, payee_vpa, payee_name, count_]
   }
 }
