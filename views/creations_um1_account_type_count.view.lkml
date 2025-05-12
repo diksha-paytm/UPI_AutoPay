@@ -16,10 +16,11 @@ view: creations_um1_account_type_count {
           AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
           AND ti.type = 'CREATE'
           AND ti.status = 'FAILURE'
+          and tp.participant_type='PAYER'
           AND ti.npci_resp_code = 'UM1'
       GROUP BY DATE(ti.created_on), tp.account_type
       ORDER BY DATE(ti.created_on) DESC, failure DESC
-       ;;
+ ;;
   }
 
   suggestions: no
