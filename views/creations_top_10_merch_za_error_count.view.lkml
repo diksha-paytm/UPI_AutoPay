@@ -12,7 +12,7 @@ view: creations_top_10_merch_za_error_count {
           WHERE
               ti.type = 'CREATE'
               AND tp.participant_type = 'PAYEE'
-              AND ti.npci_resp_code = 'ZA'
+              AND ti.npci_resp_code in ('ZA','MD00')
               AND ti.status = 'FAILURE'
           GROUP BY 1, 2, 3
       ),
