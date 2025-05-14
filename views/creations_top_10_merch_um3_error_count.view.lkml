@@ -5,16 +5,21 @@ view: creations_top_10_merch_um3_error_count {
               DATE(ti.created_on) AS created_date,
               tp.vpa AS payee_vpa,
               tp.name AS payee_name,
+              DATE(ti.expire_on) - DATE(ti.created_on) AS expiry_time,  -- Added expiry time calculation
               COUNT(DISTINCT ti.umn) AS failure
-          FROM team_product.looker_RM ti
-          JOIN team_product.looker_txn_parti_RM tp
+          FROM hive.switch.txn_info_snapshot_v3 ti
+          JOIN hive.switch.txn_participants_snapshot_v3 tp
               ON ti.txn_id = tp.txn_id
           WHERE
-              ti.type = 'CREATE'
-              AND tp.participant_type = 'PAYEE'
-              AND ti.npci_resp_code = 'UM3'
-              AND ti.status = 'FAILURE'
-          GROUP BY 1, 2, 3
+        ti.business_type = 'MANDATE'
+        and json_query(ti.extended_info, 'strict$.purpose') = '"14"'
+        and ti.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
+             and tp.dl_last_updated >= DATE_ADD('day', -30, CURRENT_DATE)
+      AND ti.created_on < CAST(CURRENT_DATE AS TIMESTAMP)
+      and tp.participant_type='PAYEE'
+        and ti.type = 'CREATE'
+        and npci_resp_code ='UM3'
+      GROUP BY 1, 2, 3, 4
       ),
 
       latest_failures AS (
@@ -51,6 +56,7 @@ view: creations_top_10_merch_um3_error_count {
       pf.created_date,
       pf.payee_vpa,
       pf.payee_name,
+      pf.expiry_time,
       pf.failure AS count,
       ROW_NUMBER() OVER (PARTITION BY pf.created_date ORDER BY pf.failure DESC) AS row_num
       FROM paytm_failures pf
@@ -64,6 +70,7 @@ view: creations_top_10_merch_um3_error_count {
       created_date,
       payee_vpa,
       payee_name,
+      expiry_time,
       count,
       row_num
       FROM filtered_vpa_failures
@@ -74,6 +81,7 @@ view: creations_top_10_merch_um3_error_count {
       dtf.created_date,
       'TOTAL' AS payee_vpa,
       'COUNT' AS payee_name,
+      NULL AS expiry_time, -- Since 'TOTAL' is aggregate, expiry time doesn't apply
       dtf.total_failures AS count,
       (SELECT MAX(row_num) + 1 FROM filtered_vpa_failures WHERE created_date = dtf.created_date) AS row_num
       FROM daily_total_failures dtf
@@ -83,6 +91,7 @@ view: creations_top_10_merch_um3_error_count {
       created_date,
       payee_vpa,
       payee_name,
+      expiry_time,
       count
       FROM final_data
       ORDER BY created_date DESC, row_num
@@ -111,12 +120,17 @@ view: creations_top_10_merch_um3_error_count {
     sql: ${TABLE}.payee_name ;;
   }
 
+  dimension: expiry_time {
+    type: string
+    sql: ${TABLE}.expiry_time ;;
+  }
+
   dimension: count_ {
     type: number
     sql: ${TABLE}."count" ;;
   }
 
   set: detail {
-    fields: [created_date, payee_vpa, payee_name, count_]
+    fields: [created_date, payee_vpa, payee_name, expiry_time, count_]
   }
 }
