@@ -1,18 +1,49 @@
 view: creations_ptybl_non_ptybl_success_count {
   derived_table: {
-    sql: SELECT date(created_on) as created_date,
-      REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') AS initiation_mode,
-      count(distinct case when LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl' then ti.umn else null end) as "ptybl",
-      count(distinct case when LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl' then ti.umn else null end) as "non-ptybl"
+    sql: SELECT
+          date(created_on) AS created_date,
+
+      -- For PTYBL
+      COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '00'
+      THEN ti.umn END) AS "ptybl_00",
+
+      COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '04'
+      THEN ti.umn END) AS "ptybl_04",
+
+      COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '13'
+      THEN ti.umn END) AS "ptybl_13",
+
+      -- For NON-PTYBL
+      COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '00'
+      THEN ti.umn END) AS "non_ptybl_00",
+
+      COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '04'
+      THEN ti.umn END) AS "non_ptybl_04",
+
+      COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '13'
+      THEN ti.umn END) AS "non_ptybl_13"
+
       FROM team_product.looker_RM ti
-      join team_product.looker_txn_parti_RM tp
-      on ti.txn_id=tp.txn_id
-                WHERE
-                    ti.type = 'CREATE'
-                    AND ti.status='SUCCESS'
-      group by 1,2
-      order by 1 desc,2
-       ;;
+      JOIN team_product.looker_txn_parti_RM tp
+      ON ti.txn_id = tp.txn_id
+      WHERE
+      ti.type = 'CREATE'
+      AND ti.status = 'SUCCESS'
+      GROUP BY 1
+      ORDER BY 1 DESC
+      ;;
   }
 
   suggestions: no
@@ -27,22 +58,45 @@ view: creations_ptybl_non_ptybl_success_count {
     sql: ${TABLE}.created_date ;;
   }
 
-  dimension: initiation_mode {
-    type: string
-    sql: ${TABLE}.initiation_mode ;;
+  dimension: ptybl_00 {
+    type: number
+    sql: ${TABLE}.ptybl_00 ;;
   }
 
-  dimension: ptybl {
+  dimension: ptybl_04 {
     type: number
-    sql: ${TABLE}.ptybl ;;
+    sql: ${TABLE}.ptybl_04 ;;
   }
 
-  dimension: nonptybl {
+  dimension: ptybl_13 {
     type: number
-    sql: ${TABLE}."non-ptybl" ;;
+    sql: ${TABLE}.ptybl_13 ;;
+  }
+
+  dimension: non_ptybl_00 {
+    type: number
+    sql: ${TABLE}.non_ptybl_00 ;;
+  }
+
+  dimension: non_ptybl_04 {
+    type: number
+    sql: ${TABLE}.non_ptybl_04 ;;
+  }
+
+  dimension: non_ptybl_13 {
+    type: number
+    sql: ${TABLE}.non_ptybl_13 ;;
   }
 
   set: detail {
-    fields: [created_date, initiation_mode, ptybl, nonptybl]
+    fields: [
+      created_date,
+      ptybl_00,
+      ptybl_04,
+      ptybl_13,
+      non_ptybl_00,
+      non_ptybl_04,
+      non_ptybl_13
+    ]
   }
 }
