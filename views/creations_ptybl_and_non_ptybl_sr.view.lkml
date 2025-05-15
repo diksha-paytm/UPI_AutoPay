@@ -2,55 +2,80 @@ view: creations_ptybl_and_non_ptybl_sr {
   derived_table: {
     sql: SELECT
           DATE(ti.created_on) AS created_date,
-          REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') AS initiation_mode,
 
-      -- Calculate Success Rate for Ptybl with Zero Division Check and add %
-      CASE
-      WHEN COUNT(DISTINCT CASE
-      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
-      THEN ti.umn
-      END) = 0
-      THEN '0%'
-      ELSE CONCAT(
-      CAST(
-      ROUND(
+      -- Success Rate for Ptybl by Initiation Mode
       COUNT(DISTINCT CASE
       WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
-      AND ti.status = 'SUCCESS' THEN ti.umn
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '00'
+      AND ti.status = 'SUCCESS'
+      THEN ti.umn
       END) * 100.0 /
-      COUNT(DISTINCT CASE
+      NULLIF(COUNT(DISTINCT CASE
       WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '00'
       THEN ti.umn
-      END),
-      2
-      ) AS VARCHAR
-      ), '%'
-      )
-      END AS "ptybl_SR",
+      END), 0) AS "ptybl_00_SR",
 
-      -- Calculate Success Rate for Non-Ptybl with Zero Division Check and add %
-      CASE
-      WHEN COUNT(DISTINCT CASE
-      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
-      THEN ti.umn
-      END) = 0
-      THEN '0%'
-      ELSE CONCAT(
-      CAST(
-      ROUND(
       COUNT(DISTINCT CASE
-      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
-      AND ti.status = 'SUCCESS' THEN ti.umn
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '04'
+      AND ti.status = 'SUCCESS'
+      THEN ti.umn
       END) * 100.0 /
+      NULLIF(COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '04'
+      THEN ti.umn
+      END), 0) AS "ptybl_04_SR",
+
+      COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '13'
+      AND ti.status = 'SUCCESS'
+      THEN ti.umn
+      END) * 100.0 /
+      NULLIF(COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) = 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '13'
+      THEN ti.umn
+      END), 0) AS "ptybl_13_SR",
+
+      -- Success Rate for Non-Ptybl by Initiation Mode
       COUNT(DISTINCT CASE
       WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '00'
+      AND ti.status = 'SUCCESS'
       THEN ti.umn
-      END),
-      2
-      ) AS VARCHAR
-      ), '%'
-      )
-      END AS "non_ptybl_SR"
+      END) * 100.0 /
+      NULLIF(COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '00'
+      THEN ti.umn
+      END), 0) AS "non_ptybl_00_SR",
+
+      COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '04'
+      AND ti.status = 'SUCCESS'
+      THEN ti.umn
+      END) * 100.0 /
+      NULLIF(COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '04'
+      THEN ti.umn
+      END), 0) AS "non_ptybl_04_SR",
+
+      COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '13'
+      AND ti.status = 'SUCCESS'
+      THEN ti.umn
+      END) * 100.0 /
+      NULLIF(COUNT(DISTINCT CASE
+      WHEN LOWER(SUBSTRING(tp.vpa FROM POSITION('@' IN tp.vpa) + 1)) != 'ptybl'
+      AND REPLACE(JSON_QUERY(ti.extended_info, 'strict $.initiationMode'), '"', '') = '13'
+      THEN ti.umn
+      END), 0) AS "non_ptybl_13_SR"
 
       FROM
       team_product.looker_RM ti
@@ -61,9 +86,9 @@ view: creations_ptybl_and_non_ptybl_sr {
       WHERE
       ti.type = 'CREATE'
       GROUP BY
-      1, 2
+      1
       ORDER BY
-      1 DESC, 2
+      1 DESC
       ;;
   }
 
@@ -79,22 +104,45 @@ view: creations_ptybl_and_non_ptybl_sr {
     sql: ${TABLE}.created_date ;;
   }
 
-  dimension: initiation_mode {
-    type: string
-    sql: ${TABLE}.initiation_mode ;;
+  dimension: ptybl_00_sr {
+    type: number
+    sql: ${TABLE}.ptybl_00_SR ;;
   }
 
-  dimension: ptybl_sr {
-    type: string
-    sql: ${TABLE}.ptybl_SR ;;
+  dimension: ptybl_04_sr {
+    type: number
+    sql: ${TABLE}.ptybl_04_SR ;;
   }
 
-  dimension: non_ptybl_sr {
-    type: string
-    sql: ${TABLE}.non_ptybl_SR ;;
+  dimension: ptybl_13_sr {
+    type: number
+    sql: ${TABLE}.ptybl_13_SR ;;
+  }
+
+  dimension: non_ptybl_00_sr {
+    type: number
+    sql: ${TABLE}.non_ptybl_00_SR ;;
+  }
+
+  dimension: non_ptybl_04_sr {
+    type: number
+    sql: ${TABLE}.non_ptybl_04_SR ;;
+  }
+
+  dimension: non_ptybl_13_sr {
+    type: number
+    sql: ${TABLE}.non_ptybl_13_SR ;;
   }
 
   set: detail {
-    fields: [created_date, initiation_mode, ptybl_sr, non_ptybl_sr]
+    fields: [
+      created_date,
+      ptybl_00_sr,
+      ptybl_04_sr,
+      ptybl_13_sr,
+      non_ptybl_00_sr,
+      non_ptybl_04_sr,
+      non_ptybl_13_sr
+    ]
   }
 }
