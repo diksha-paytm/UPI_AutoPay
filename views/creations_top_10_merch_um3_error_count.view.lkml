@@ -5,7 +5,7 @@ view: creations_top_10_merch_um3_error_count {
               DATE(ti.created_on) AS created_date,
               tp.vpa AS payee_vpa,
               tp.name AS payee_name,
-              DATE(ti.expire_on) - DATE(ti.created_on) AS expiry_time,  -- Added expiry time calculation
+      REGEXP_EXTRACT(CAST(ti.expire_on - ti.created_on AS VARCHAR), '[0-9]{2}:[0-9]{2}:[0-9]{2}') AS expiry_time,  -- Added expiry time calculation
               COUNT(DISTINCT ti.umn) AS failure
           FROM hive.switch.txn_info_snapshot_v3 ti
           JOIN hive.switch.txn_participants_snapshot_v3 tp
